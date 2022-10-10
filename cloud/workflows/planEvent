@@ -3,6 +3,7 @@
   This script will transition an issue in relation to a weekday that is to be found in a customfield
 */
 
+
 //MADE BY LOUIS GOODNEWS
 
 /*
@@ -15,15 +16,14 @@ To this end the event's project will provide the name for the new component.
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 import java.util.Calendar;
-import java.text.SimpleDateFormat;
 
 //CONSTANTS:
 class CONSTANTS{
     
     //PARAMETERS:
 	static String ISSUEKEY = "<insert issue key here>";
-    static LinkedHashMap<String, String> NAME_WEEKDAY_HASHMAP = [
-        "Sunday" : "Sonntag",
+   	static LinkedHashMap<String, String> NAME_WEEKDAY_HASHMAP = [
+		"Sunday" : "Sonntag",
 		"Monday" : "Montag",
 		"Tuesday" : "Dienstag",
 		"Wednesday" : "Mittwoch",
@@ -77,7 +77,7 @@ if (issue.fields.customfield_10008){
 List<Integer> integerArray =  []; // 0 year, 1 month, 2 day
 targetDate.split("-").each{ String dateDracture -> integerArray.add(Integer.parseInt(dateDracture)) };
 Calendar calendar = new Calendar.Builder().setDate(integerArray[0], integerArray[1], integerArray[2]).build();
-HashMap<String, Object> transitionHash = transitionsArray.find{ it -> it.name.equalsIgnoreCase(CONSTANTS.NAME_WEEKDAY_HASHMAP.get(CONSTANTS.NAME_WEEKDAY_HASHMAP.keySet().getAt(calendar.get(Calendar.DAY_OF_WEEK) - 1))) } as HashMap<String, Object>;
+HashMap<String, Object> transitionHash = transitionsArray.find{ it -> it.name.equalsIgnoreCase(CONSTANTS.NAME_WEEKDAY_HASHMAP.get(CONSTANTS.NAME_WEEKDAY_HASHMAP.keySet().getAt(calendar.get(Calendar.DAY_OF_WEEK_IN_MONTH) - 1))) } as HashMap<String, Object>;
 HashMap<String, Object> currentUser = get("""/rest/api/latest/myself""")
 	.header("Content-Type", "application/json")
 	.header("Accept", "application/json")
