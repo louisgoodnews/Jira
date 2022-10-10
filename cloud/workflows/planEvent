@@ -1,15 +1,8 @@
-
-/*
-  This script will transition an issue in relation to a weekday that is to be found in a customfield
-*/
-
-
 //MADE BY LOUIS GOODNEWS
 
 /*
 DESCRIPTION:
-This script will create a component in the maintenance project.
-To this end the event's project will provide the name for the new component.
+This script will transition an issue in relation to a weekday that is to be found in a customfield.
 */
 
 //IMPORT:
@@ -21,8 +14,8 @@ import java.util.Calendar;
 class CONSTANTS{
     
     //PARAMETERS:
-	static String ISSUEKEY = "<insert issue key here>";
-   	static LinkedHashMap<String, String> NAME_WEEKDAY_HASHMAP = [
+	static String ISSUEKEY = "<enter issue key here!>";
+	static LinkedHashMap<String, String> NAME_WEEKDAY_HASHMAP = [
 		"Sunday" : "Sonntag",
 		"Monday" : "Montag",
 		"Tuesday" : "Dienstag",
@@ -38,45 +31,53 @@ Logger logger = Logger.getLogger("com.louis.scriptrunner.workflow.planEvent");
 logger.setLevel(Level.DEBUG);
 
 //INITIALISATION:
-def issue;
 String targetDate;
 
 //DECLARATION:
 Boolean doLog = false;
-if(!issue){
-	
-	issue = get("""/rest/api/latest/issue/${CONSTANTS.ISSUEKEY}""")
-		.header("Authorization", JIRAAUTH)
-		.header("Content-Type", "application/json")
-		.header("Accept", "application/json")
-		.asObject(Map)
-		.body;
+/*
+HashMap<String, Object> issue = get("""/rest/api/latest/issue/${CONSTANTS.ISSUEKEY}""")
+	.header("Authorization", JIRAAUTH)
+	.header("Content-Type", "application/json")
+	.header("Accept", "application/json")
+	.asObject(Map)
+	.body;
+
+*/
+List<String> relevantFields = ["Actual start", "Planned start", "Start date", "Target start"];
+ArrayList<HashMap<String, Object>> changelog = get("""/rest/api/latest/issue/${issue.key}/changelog""")
+    .header("Authorization", JIRAAUTH)
+	.header("Content-Type", "application/json")
+	.header("Accept", "application/json")
+	.asObject(Map)
+	.body
+	.values;
+HashMap<String, Object> changeItem = getLastOfList(changelog).items[0];
+doLog ? logger.debug("""Found change item: ${changeItem}""") : null;
+if (!relevantFields.contains(changeItem.field)) {
+    
+    logger.error("""Last changed item was ${changeItem.field}! - Script exectution aborted""");
+    return;
 }
 
-ArrayList<HashMap<String, Object>> transitionsArray = get("""/rest/api/latest/issue/${CONSTANTS.ISSUEKEY}/transitions""")
+doLog ? logger.debug("""Relevant field was ${changeItem.field} for issue ${issue.key}.""") : null ;
+ArrayList<HashMap<String, Object>> transitionsArray = get("""/rest/api/latest/issue/${issue.key}/transitions""")
 	.header("Authorization", JIRAAUTH)
 	.header("Content-Type", "application/json")
 	.header("Accept", "application/json")
 	.asObject(Map)
 	.body
 	.transitions;
-if (issue.fields.customfield_10008){
-	
-	doLog? logger.debug("I found an entry for field 'Actual start'!") : null;
-	targetDate = issue.fields.customfield_10008.find("[0-9]+-[0-9]+-[0-9]+");
-} else if(issue.fields.customfield_10155) {
-	
-	doLog? logger.debug("I found an entry for field 'Planned start'!") : null;
-	targetDate = issue.fields.customfield_10155.find("[0-9]+-[0-9]+-[0-9]+");
-} else if(issue.fields.customfield_10015) {
-	
-	doLog? logger.debug("I found an entry for field 'Start date'!") : null;
-	targetDate = issue.fields.customfield_10015.find("[0-9]+-[0-9]+-[0-9]+");
+if (changelog) {
+    
+    doLog ? logger.debug("""Found an entry for field ${changeItem.name}""") : null;
+    targetDate = issue.fields.get(changeItem.fieldId);
 }
 
 List<Integer> integerArray =  []; // 0 year, 1 month, 2 day
 targetDate.split("-").each{ String dateDracture -> integerArray.add(Integer.parseInt(dateDracture)) };
 Calendar calendar = new Calendar.Builder().setDate(integerArray[0], integerArray[1], integerArray[2]).build();
+doLog ? logger.debug("""Found id: ${calendar.get(Calendar.DAY_OF_WEEK_IN_MONTH)} for weekday: ${CONSTANTS.NAME_WEEKDAY_HASHMAP.keySet().getAt(calendar.get(Calendar.DAY_OF_WEEK_IN_MONTH))}.""") : null;
 HashMap<String, Object> transitionHash = transitionsArray.find{ it -> it.name.equalsIgnoreCase(CONSTANTS.NAME_WEEKDAY_HASHMAP.get(CONSTANTS.NAME_WEEKDAY_HASHMAP.keySet().getAt(calendar.get(Calendar.DAY_OF_WEEK_IN_MONTH)))) } as HashMap<String, Object>;
 HashMap<String, Object> currentUser = get("""/rest/api/latest/myself""")
 	.header("Content-Type", "application/json")
@@ -95,7 +96,7 @@ try{
 		.asJson();
 }catch(Exception e){
 	
-	logger.error("""Caught Exception: ${e}""");
+	logger.error("""Caught Exception: ${e} - Script exectution aborted""");
 	
 	//-> create error issue on exception:
     HttpResponse<JsonNode> createErrorIssue = post("rest/api/latest/issue")
@@ -116,7 +117,6 @@ try{
             ]
         )
         .asJson()
-        
     if(!createErrorIssue.status.toString().equals("204")){
         
 		logger.error("""Creating an error issue resulted ${createErrorIssue.status} with message ${createErrorIssue.body}""")
@@ -125,3 +125,8 @@ try{
 }
 //RETURN:
 return "done!"
+
+public def getLastOfList(def list){
+    
+    return list[list.size() - 1];
+}
