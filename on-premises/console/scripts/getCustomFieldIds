@@ -23,6 +23,8 @@ LinkedList<String> result = new LinkedList();
 LinkedList<CustomField> customFields = ComponentAccessor.getCustomFieldManager().getCustomFieldObjects();
 
 customFields.each { CustomField customField ->
+try{
+
 
     if (customField.getName().contains(" ")) {
 
@@ -38,11 +40,16 @@ customFields.each { CustomField customField ->
             }
         }
         customFields.add( innerStringBuilder.append( new String("String ${customField.getName()} = '${customField.getId()}';") ) );
-
+        innerStringBuilder.delete(0, innerStringBuilder.length());        
     } else {
 
         result.add( new String("String ${ customField.getName() } = '${ customField.getId() }';") );
     }
+} catch (Exception e) {
+
+    logger.error("Ran into exception ${e} while running code!");
+    return;
+}
 };
 
 return ["size": customFields.size(), "fields": result];
