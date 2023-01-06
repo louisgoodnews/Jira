@@ -1,0 +1,48 @@
+
+//MADE BY LOUIS GOODNEWS
+
+/*
+DESCRIPTION:
+This script will create a component in the maintenance project.
+To this end the event's project will provide the name for the new component.
+*/
+
+//IMPORT:
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import org.json.JSONObject
+
+//LOGGER:
+Logger logger = Logger.getLogger("Listener: 'project_created' event")
+logger.setLevel(Level.DEBUG)
+
+//DECLARATION:
+HttpResponse getCurrentUser = get("rest/api/latest/myself")
+    .header("Accept", "application/json")
+    .asObject(Map)
+
+if(getCurrentUser.status != 200){
+    return ("""getCurrentUser failed: ${getCurrentUser.status} | ${getCurrentUser}""")
+}
+
+//TASK(S):
+try{
+    HttpResponse createProjectComponent = post("rest/api/latest/component")
+    .header("Authorization", "Basic bG91aXNnb29kbmV3czk1QGdtYWlsLmNvbTp5bmUwbUtZeUpuQnpDeGZtMWNYWkQ2QzU=")
+    .header("Accept", "application/json")
+    .header("Content-Type", "application/json")
+    .body(
+        name: project.name,
+        description: null,
+        leadAccountId: getCurrentUser.body.accountId.toString(),
+        assigneeType: "COMPONENT_LEAD",
+        project: "MP"
+    )
+    .asJson()
+    
+    if(createProjectComponent.status != 201){
+        return ("""createProjectComponent failed: ${createProjectComponent.status} | ${createProjectComponent}""")
+    }
+}catch(Exception e){
+    logger.error("The task failed due to: ${e}")
+}
