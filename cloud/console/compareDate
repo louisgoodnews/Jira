@@ -1,0 +1,43 @@
+
+//MADE BY LOUIS GOODNEWS
+
+/*
+DESCRIPTION:
+This script wil compare current time to issue's due date. If the latter is none existent or in the past, the script will return true otherwise false.
+*/
+
+//IMPORT:
+import java.time.format.DateTimeFormatter
+import java.time.LocalDateTime
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import java.util.Date
+
+//CONSTANTS:
+class CONSTANTS{
+    
+    //PARAMETERS:
+}
+
+//LOGGER:
+Logger logger = Logger.getLogger("com.louis.scriptrunner.console.compareDate")
+logger.setLevel(Level.DEBUG)
+
+//DECLARATION:
+LocalDateTime currentTime = LocalDateTime.now()
+DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+String formattedDate = dateTimeFormatter.format(currentTime).toString()
+LinkedHashMap<String, String> issue = [key : "TMP-29"]
+HttpResponse<Map> getIssueObject = get("""rest/api/latest/issue/${issue.key}""")
+    .header('Accept', 'application/json')
+    .asObject(Map)
+
+//TASK(S):
+if(getIssueObject.body.fields.duedate == null || Integer.parseInt(getIssueObject.body.fields.duedate.replace('-', '')) < Integer.parseInt(formattedDate.replace('-', ''))){
+    return true
+}else{
+    return false
+}
+
+//RETURN:
+return "done!"
