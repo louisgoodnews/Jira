@@ -1,0 +1,103 @@
+
+//MADE BY LOUIS GOODNEWS
+
+/*
+DESCRIPTION:
+this script will fetch the event's issue and will query for the total number of issues in the issue's project, if it is a stand-alone.
+It will then push this Integer value to the issue's project's project and asset issues in the project management project and the project asset issue in the asset management project respectively.
+*/
+
+//IMPORT:
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import org.json.JSONArray
+
+//LOGGER:
+Logger logger = Logger.getLogger("Script listener 'issue_created' event no.1 (update project and asset issues)")
+logger.setLevel(Level.DEBUG)
+
+//DECLARATION:
+//HashMap<Object, String> issue = [key:"TTP-73"]
+HttpResponse issueObject = get("""rest/api/latest/issue/${issue.key}""").header("Accept", "application/json").asObject(Map)
+HttpResponse findAssetIssues = get("rest/api/latest/search").header("Accept", "application/json").queryString("jql", "project = 10122 AND issuetype = 10100").asJson()
+
+//LOGGER LOGGING STUFF [1]:
+
+
+//TASK(S):
+try{
+    if(!issueObject.body.fields.customfield_10014.toString().equals("null")){
+        for(linkedIssue in get("""rest/api/latest/issue/${issueObject.body.fields.customfield_10014.toString()}""").header("Accept", "application/json").asObject(Map).body.fields.issuelinks){
+                if(issueObject.body.fields.customfield_10014.toString().equals(get("rest/api/latest/issue/${linkedIssue.inwardIssue.key}").header("Accept", "application/json").asObject(Map).body.fields.customfield_10161.toString())){
+                    if(linkedIssue.type.id.toString().equals("10100")){
+                    HttpResponse updateLinkedIssue = put("""rest/api/latest/issue/${linkedIssue.inwardIssue.key}""")
+                        .header("Accept", "application/json")
+                        .header("Content-Type", "application/json")
+                        .body([fields:[customfield_10148:"""${get("rest/api/latest/search/").header("Accept", "application/json").queryString("jql", "cf[10014] = ${issueObject.body.fields.customfield_10014.toString()}").asJson().body.array.getAt(0).total.toString()}"""]])
+                        .asJson()
+                    if(!updateLinkedIssue.status.toString().equals("204")){
+                        return ("""updateLinkedIssue failed: ${updateLinkedIssue.status} | ${updateLinkedIssue}""")
+                    }else{
+                        for(Integer i = 0; i < findAssetIssues.body.array.getAt(0).issues.size(); i++){
+                            if(findAssetIssues.body.array.getAt(0).issues.getAt(i).fields.customfield_10147.toString().equals(issueObject.body.key.findAll("[A-Z]+").join().toString())){
+                                HttpResponse updateAssetIssue = put("""rest/api/latest/issue/${findAssetIssues.body.array.getAt(0).issues.getAt(i).key}""")
+                                    .header("Accept", "application/json")
+                                    .header("Content-Type", "application/json")
+                                    .body([fields:[customfield_10148:"""${get("rest/api/latest/search/").header("Accept", "application/json").queryString("jql", "cf[10014] = ${issueObject.body.fields.customfield_10014.toString()}").asJson().body.array.getAt(0).total.toString()}"""]])
+                                    .asJson()
+                            }
+                        }
+                    }
+                }
+            }else{
+                if(linkedIssue.type.id.toString().equals("10100")){
+                    HttpResponse updateLinkedIssue = put("""rest/api/latest/issue/${linkedIssue.inwardIssue.key}""")
+                    .header("Accept", "application/json")
+                        .header("Content-Type", "application/json")
+                        .body([fields:[customfield_10148:"""${get("rest/api/latest/search/").header("Accept", "application/json").queryString("jql", """project = ${(issueObject.body.key.findAll('[A-Z]+') as ArrayList).join().toString()}""").asJson().body.array.getAt(0).total.toString()}"""]])
+                        .asJson()
+                    if(!updateLinkedIssue.status.toString().equals("204")){
+                        return ("""updateLinkedIssue failed: ${updateLinkedIssue.status} | ${updateLinkedIssue}""")
+                    }else{
+                        for(Integer i = 0; i < findAssetIssues.body.array.getAt(0).issues.size(); i++){
+                            if(findAssetIssues.body.array.getAt(0).issues.getAt(i).fields.customfield_10147.toString().equals(issueObject.body.key.findAll("[A-Z]+").join().toString())){
+                                HttpResponse updateAssetIssue = put("""rest/api/latest/issue/${findAssetIssues.body.array.getAt(0).issues.getAt(i).key}""")
+                                    .header("Accept", "application/json")
+                                    .header("Content-Type", "application/json")
+                                    .body([fields:[customfield_10148:"""${get("rest/api/latest/search/").header("Accept", "application/json").queryString("jql", """project = ${(issueObject.body.key.findAll('[A-Z]+') as ArrayList).join().toString()}""").asJson().body.array.getAt(0).total.toString()}"""]])
+                                    .asJson()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }else{
+        return "condition not met!"
+    }
+}catch(Exception e){
+    
+    //-> create error issue on exception:
+    HttpResponse createErrorIssue = post("rest/api/latest/issue")
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .body(
+            [
+                fields:[
+                    project:[
+                        id: "10124"
+                        ],
+                    summary: "Script listener 'issue_created' event no.1 (update project and asset issues)",
+                    description: """The task failed due to: \n\n ${e} \n\n On ${new Date()}.""",
+                    issuetype: [
+                        id: "10114"
+                        ]
+                ]
+            ]
+        )
+        .asJson()
+        
+    if(!createErrorIssue.status.toString().equals("201")){
+        logger.error("""Creating an error issue resulted ${createErrorIssue.status} with message ${createErrorIssue.body}""")
+    }
+}
