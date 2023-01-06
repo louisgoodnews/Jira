@@ -1,0 +1,45 @@
+
+//MADE BY LOUIS GOODNEWS
+
+/*
+DESCRIPTION:
+
+Updates the custom field 10147 "Projekt Schlüssel" with the matches from Regex [A-Z]+ in the current issue's summary.
+*/
+
+//IMPORT:
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+
+//LOGGER:
+Logger logger = Logger.getLogger("Workflow: (PID: 10100-0) | Transition: 'Create' | Postfunction no.1")
+logger.setLevel(Level.TRACE)
+
+//DECLARATION:
+HttpResponse getCurrentIssue = get("""rest/api/latest/issue/${issue.key}""")
+    .header("Accept", "application/json")
+    .asObject(Map)
+    
+if(!getCurrentIssue.status.toString().equals("200")){
+    logger.error("""Fetching current resulted ${getCurrentIssue.status} with message: ${getCurrentIssue.body}""")
+}
+
+//TASK(S):
+HttpResponse updateCurrentIssue = put("""rest/api/latest/issue/${issue.key}""")
+    .header("Accept", "application/json")
+    .header("Content-Type", "application/json")
+    .body(
+        [
+            fields:[
+                customfield_10147: """${getCurrentIssue.body.fields.summary.toString().find('[A-Z]+')}"""
+            ]
+        ]
+    )
+    .asJson()
+   
+if(!updateCurrentIssue.status.toString().equals("200")){
+    logger.error("""Updating current resulted ${updateCurrentIssue.status} with message: ${updateCurrentIssue.body}""")
+}
+
+//RETURN:
+return "done!"
