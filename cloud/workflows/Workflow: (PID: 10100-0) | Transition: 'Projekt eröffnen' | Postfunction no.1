@@ -1,0 +1,333 @@
+
+//MADE BY LOUIS GOODNEWS
+
+/*
+DESCRIPTION:
+
+This script will fetch the current issue's informaiton and check, if the issue has already been processesed before. To this end, entries in the customfield_10159 "Projekt Nummer" will be checked.
+If an entry exists, the script will abort and comment on this fact, otherwise the script will check the issue type next. If the issue type is in the RELEVANTISSUETYPEHASH and process it accordingly.
+
+Big project -> create a project in Jira
+(regular) Project -> create an Epic in the task nmanagement project (will spawn issue packs in future)
+small Project -> (currently) create an Epic in the task nmanagement project
+*/
+
+//IMPORT:
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+
+//LOGGER:
+Logger logger = Logger.getLogger("Workflow: (PID: 10100-0) | Transition: 'Projekt eröffnen' | Postfunction no.1")
+logger.setLevel(Level.DEBUG)
+
+//CONSTANTS:
+class CONSTANTS{
+    
+    //PARAMETERS:
+    static HashMap<String, String> RELEVANTISSUETYPEHASH = [
+        "10102" : "small project",
+        "10100" : "regular project",
+        "10101" : "big project"
+        ]
+    static String SCRIPTRUNNERACTORID = "557058:d2e5bd5c-dc49-41eb-a6f0-5e01093666c1" //-> Scriptrunner for Jira
+}
+
+//DECLARATION:
+HttpResponse currentUser = get("rest/api/latest/myself")
+    .header("Accept", "application/json")
+    .asObject(Map)
+    
+//verify response:
+if(!currentUser.status.toString().equals("200")){
+    logger.error("""Fetching the current user resulted ${currentUser.status} with message: ${currentUser.body}.""")
+}
+
+HttpResponse issueObject = get("""rest/api/latest/issue/${issue.key}""")
+    .header("Accept", "application/json")
+    .asObject(Map)
+    
+//verify response:
+if(!issueObject.status.toString().equals("200")){
+    logger.error("""Fetching the current issue resulted ${issueObject.status} with message: ${issueObject.body}.""")
+}
+
+//TASK(S):
+try{
+    if(issueObject.body.fields.customfield_10159 != null){
+        
+        //-> comment on issue:
+        HttpResponse commentOnIssue = post("""rest/api/latest/issue/${issueObject.body.key}/comment""")
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(
+                [
+                    body:"""Hi [~accountId:${currentUser.body.accountId}], \n\n ich konnte deine Anfrage leider nicht erfolgreich bearbeiten. \n\n Ich denke, dass das daran liegt, dass dieser Vorgang schon einmal von mir bearbeitet worden ist. \n Schaue hierzu doch bitte einmal in die Vorgangshistorie. \n\n Mit freundlichen Grüßen \n [~accountId:${CONSTANTS.SCRIPTRUNNERACTORID}]"""
+                ]
+            )
+            .asJson()
+            
+        //verify response:
+        if(!commentOnIssue.status.toString().equals("201")){
+            logger.error("""Commenting ${issueObject.body.key} resulted ${commentOnIssue.status} with message: ${commentOnIssue.body}.""")
+        }
+        
+    }else{
+        if(CONSTANTS.RELEVANTISSUETYPEHASH.get(issueObject.body.fields.issuetype.id).equalsIgnoreCase("small project") || CONSTANTS.RELEVANTISSUETYPEHASH.get(issueObject.body.fields.issuetype.id).equalsIgnoreCase("regular project")){
+        
+            //if current issue is small or (reguular) project, create an epic issue in task management:
+            HttpResponse createEpicIssue = post("rest/api/latest/issue")
+                .header("Authorization", "Basic bG91aXNnb29kbmV3czk1QGdtYWlsLmNvbTp5bmUwbUtZeUpuQnpDeGZtMWNYWkQ2QzU=")
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(
+                    [
+                        fields:[
+                            issuetype: "10000", //-> epic issue type
+                            summary: """${issueObject.body.fields.summary}""", //-> copy value from current issue
+                            description: """${issueObject.body.fields.description}""", //-> copy value from current issue
+                            customfield_10011: """${issueObject.key} - ${issueObject.body.fields.summary}""", //-> copy value from current issue
+                            customfield_10147: """${issueObject.body.fields.summary.find('[A-z]+')}""", //-> copy value from current issue
+                            transition: "",
+                            assignee: """${issueObject.body.fields.assignee}""", //-> copy value from current issue
+                            reporter: """${issueObject.body.fields.assignee}""" //-> copy value from current issue
+                        ]
+                    ]
+                )
+                .asJson()
+                
+            //verify response:
+            if(!createEpicIssue.status.toString().equals("201")){
+                logger.error("""Creating the epic resulted ${createEpicIssue.status} with message: ${createEpicIssue.body}.""")
+            }
+            
+            //update current issue:
+            HttpResponse updateIssueObject = put("""rest/api/latest/issue/${issueObject.body.key}""")
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(
+                    [
+                        fields:[
+                            customfield_10159: "10129",
+                            customfield_10147: """${issueObject.body.fields.summary.find('[A-z]+')}""" //-> copy value from current issue  
+                        ]    
+                    ]
+                )
+                .asJson()
+                
+            //verify response:
+            if(!updateIssueObject.status.toString().equals("204")){
+                logger.error("""Updating ${issueObject.body.key} resulted ${updateIssueObject.status} with message: ${updateIssueObject.body}.""")
+            }
+            
+            //-> comment on issue:
+            HttpResponse commentOnIssue = post("""rest/api/latest/issue/${issueObject.body.key}/comment""")
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(
+                    [
+                        body:"""Hi [~accountId:${currentUser.body.accountId}], \n\n ich habe für dich folgendes Epic im Aufgabenverwaltungsprojekt erstellt: ${createEpicIssue.body.key} . \n\n Du kannst es [hier|https://ldesbordes.atlassian.net/browse/${createEpicIssue.body.key}] finden. \n\n Mit freundlichen Grüßen \n [~accountId:${CONSTANTS.SCRIPTRUNNERACTORID}] \n\n PS: VIel Erfolg!"""
+                    ]
+                )
+                .asJson()
+                
+            //verify response:
+            if(!commentOnIssue.status.toString().equals("201")){
+                logger.error("""Commenting ${issueObject.body.key} resulted ${commentOnIssue.status} with message: ${commentOnIssue.body}.""")
+            }
+            
+        }else if(CONSTANTS.RELEVANTISSUETYPEHASH.get(issueObhject.body.fields.issuetype.id).equalsIgnoreCase("big project")){
+            if(issueObhject.body.fields.cusotmfield_10163.toString().eualsIgnoreCase("business")){
+                //if current issue is small or (reguular) project, create an epic issue in task management:
+                HttpResponse createBusinessProject = post("rest/api/latest/project")
+                    .header("Authorization", "Basic bG91aXNnb29kbmV3czk1QGdtYWlsLmNvbTp5bmUwbUtZeUpuQnpDeGZtMWNYWkQ2QzU=")
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .body(
+                        [
+                            key: """${issueObject.body.fields.summary.find('[A-z]+')}""",
+                            name: """${issueObject.body.fields.summary}""",
+                            description: """${issueObject.body.fields.description}""",
+                            leadAccountId: """${issueObject.body.fields.assignee.accountId}""",
+                            assigneeType: "PROJECT_LEAD",
+                            issueSecurityScheme: "10100",
+                            notificationScheme: "10000",
+                            projectTypeKey: "business",
+                            workflowScheme: "10110",
+                            issueTypeScreenScheme: "10101",
+                            issueTypeScheme: "10205",
+                            fieldConfigurationScheme: "10102"
+                        ]
+                    )
+                    .asJson()
+                
+                //verify response:
+                if(!createBusinessProject.status.toString().equals("204")){
+                    logger.error("""Creating a business project resulted ${createBusinessProject.status} with message: ${createBusinessProject.body}.""")
+                }else{
+                    HttpResponse createProjectComponent = post("rest/api/latest/component")
+                        .header("Authorization", "Basic bG91aXNnb29kbmV3czk1QGdtYWlsLmNvbTp5bmUwbUtZeUpuQnpDeGZtMWNYWkQ2QzU=")
+                        .header("Accept", "application/json")
+                        .header("Content-Type", "application/json")
+                        .body(
+                            name: """${issueObject.body.fields.summary}""",
+                            description: null,
+                            leadAccountId: """${currentUser.body.accountId.toString()}""",
+                            assigneeType: "COMPONENT_LEAD",
+                            project: "MP"
+                        )
+                        .asJson()
+                    
+                    if(!createProjectComponent.status.toString().equals("204")){
+                        logger.error("""Creating a component in administration project resulted ${createProjectComponent.status} with message: ${createProjectComponent.body}.""")
+                    }
+                }
+                
+                //-> comment on issue:
+                HttpResponse commentOnIssue = post("""rest/api/latest/issue/${issueObhject.body.key}/comment""")
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .body(
+                        [
+                            body:"""Hi [~accountId:${currentUser.body.accountId}], \n\n ich habe für dich folgendes Jira Project erstellt: ${createBusinessProject.body.name} . \n\n Du kannst es [hier|https://ldesbordes.atlassian.net/browse/${createBusinessProject.body.key}] finden. \n\n Mit freundlichen Grüßen \n [~accountId:${CONSTANTS.SCRIPTRUNNERACTORID}] \n\n PS: VIel Erfolg!"""
+                        ]
+                    )
+                    .asJson()
+                    
+                //verify response:
+                if(!commentOnIssue.status.toString().equals("201")){
+                    logger.error("""Commenting ${issueObject.body.key} resulted ${commentOnIssue.status} with message: ${commentOnIssue.body}.""")
+                }
+                
+            }else if(issueObject.body.fields.cusotmfield_10163.toString().eualsIgnoreCase("service management")){
+                //if current issue is small or (reguular) project, create an epic issue in task management:
+                HttpResponse createServiceProject = post("rest/api/latest/project")
+                    .header("Authorization", "Basic bG91aXNnb29kbmV3czk1QGdtYWlsLmNvbTp5bmUwbUtZeUpuQnpDeGZtMWNYWkQ2QzU=")
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .body(
+                        [
+                            key: """${issueObject.body.fields.summary.find('[A-z]+')}""",
+                            name: """${issueObject.body.fields.summary}""",
+                            description: """${issueObject.body.fields.description}""",
+                            leadAccountId: """${issueObject.body.fields.assignee.accountId}""",
+                            assigneeType: "PROJECT_LEAD",
+                            issueSecurityScheme: "10000",
+                            notificationScheme: "10000",
+                            projectTypeKey: "service_desk",
+                            workflowScheme: "10003",
+                            issueTypeScreenScheme: "10002",
+                            issueTypeScheme: "10138",
+                            fieldConfigurationScheme: "10102"
+                        ]
+                    )
+                    .asJson()
+                
+                //verify response:
+                if(!createServiceProject.status.toString().equals("204")){
+                    logger.error("""Creating a service management project resulted ${createServiceProject.status} with message: ${createServiceProject.body}.""")
+                }else{
+                    HttpResponse createProjectComponent = post("rest/api/latest/component")
+                        .header("Authorization", "Basic bG91aXNnb29kbmV3czk1QGdtYWlsLmNvbTp5bmUwbUtZeUpuQnpDeGZtMWNYWkQ2QzU=")
+                        .header("Accept", "application/json")
+                        .header("Content-Type", "application/json")
+                        .body(
+                            name: """${issueObject.body.fields.summary}""",
+                            description: null,
+                            leadAccountId: """${currentUser.body.accountId.toString()}""",
+                            assigneeType: "COMPONENT_LEAD",
+                            project: "MP"
+                        )
+                        .asJson()
+                    
+                    if(!createProjectComponent.status.toString().equals("204")){
+                        logger.error("""Creating a component in administration project resulted ${createProjectComponent.status} with message: ${createProjectComponent.body}.""")
+                    }
+                }
+                
+                //-> comment on issue:
+                HttpResponse commentOnIssue = post("""rest/api/latest/issue/${issueObject.body.key}/comment""")
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .body(
+                        [
+                            body:"""Hi [~accountId:${currentUser.body.accountId}], \n\n ich habe für dich folgendes Jira Project erstellt: ${createBusinessProject.body.name} . \n\n Du kannst es [hier|https://ldesbordes.atlassian.net/browse/${createBusinessProject.body.key}] finden. \n\n Mit freundlichen Grüßen \n [~accountId:${CONSTANTS.SCRIPTRUNNERACTORID}] \n\n PS: VIel Erfolg!"""
+                        ]
+                    )
+                    .asJson()
+                    
+                //verify response:
+                if(!commentOnIssue.status.toString().equals("201")){
+                    logger.error("""Commenting ${issueObject.body.key} resulted ${commentOnIssue.status} with message: ${commentOnIssue.body}.""")
+                }
+                
+            }else if(issueObhject.body.fields.cusotmfield_10163.toString().eualsIgnoreCase("software")){
+                //if current issue is small or (reguular) project, create an epic issue in task management:
+                HttpResponse createSoftwareProject = post("rest/api/latest/project")
+                    .header("Authorization", "Basic bG91aXNnb29kbmV3czk1QGdtYWlsLmNvbTp5bmUwbUtZeUpuQnpDeGZtMWNYWkQ2QzU=")
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .body(
+                        [
+                            key: """${issueObject.body.fields.summary.find('[A-z]+')}""",
+                            name: """${issueObject.body.fields.summary}""",
+                            description: """${issueObject.body.fields.description}""",
+                            leadAccountId: """${issueObject.body.fields.assignee.accountId}""",
+                            assigneeType: "PROJECT_LEAD",
+                            issueSecurityScheme: "10100",
+                            notificationScheme: "10000",
+                            projectTypeKey: "software",
+                            workflowSchem: "10110",
+                            issueTypeScreenScheme: "10101",
+                            issueTypeScheme: "10205",
+                            fieldConfigurationScheme: "10102"
+                        ]
+                    )
+                    .asJson()
+                
+                //verify response:
+                if(!createSoftwareProject.status.toString().equals("204")){
+                    logger.error("""Creating a ssoftware project resulted ${createSoftwareProject.status} with message: ${createSoftwareProject.body}.""")
+                }else{
+                    HttpResponse createProjectComponent = post("rest/api/latest/component")
+                        .header("Authorization", "Basic bG91aXNnb29kbmV3czk1QGdtYWlsLmNvbTp5bmUwbUtZeUpuQnpDeGZtMWNYWkQ2QzU=")
+                        .header("Accept", "application/json")
+                        .header("Content-Type", "application/json")
+                        .body(
+                            name: """${issueObject.body.fields.summary}""",
+                            description: null,
+                            leadAccountId: """${currentUser.body.accountId.toString()}""",
+                            assigneeType: "COMPONENT_LEAD",
+                            project: "MP"
+                        )
+                        .asJson()
+                    
+                    if(!createProjectComponent.status.toString().equals("204")){
+                        logger.error("""Creating a component in administration project resulted ${createProjectComponent.status} with message: ${createProjectComponent.body}.""")
+                    }
+                }
+                
+                //-> comment on issue:
+                HttpResponse commentOnIssue = post("""rest/api/latest/issue/${issueObject.body.key}/comment""")
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .body(
+                        [
+                            body:"""Hi [~accountId:${currentUser.body.accountId}], \n\n ich habe für dich folgendes Jira Project erstellt: ${createBusinessProject.body.name} . \n\n Du kannst es [hier|https://ldesbordes.atlassian.net/browse/${createBusinessProject.body.key}] finden. \n\n Mit freundlichen Grüßen \n [~accountId:${CONSTANTS.SCRIPTRUNNERACTORID}] \n\n PS: VIel Erfolg!"""
+                        ]
+                    )
+                    .asJson()
+                    
+                //verify response:
+                if(!commentOnIssue.status.toString().equals("201")){
+                    logger.error("""Commenting ${issueObject.body.key} resulted ${commentOnIssue.status} with message: ${commentOnIssue.body}.""")
+                }
+                
+            }
+        }
+    }
+}catch(Exception e){
+    logger.error("""The task failed due to: ${e}""")
+}
+
+//RETURN:
+return "done!"
