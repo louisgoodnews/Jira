@@ -25,7 +25,6 @@ LinkedList<CustomField> customFields = ComponentAccessor.getCustomFieldManager()
 customFields.each { CustomField customField ->
 try{
 
-
     if (customField.getName().contains(" ")) {
 
         String[] customFieldNameArray = customField.getName().split(" ");
@@ -36,7 +35,7 @@ try{
                 innerStringBuilder.append( new String( customFieldNameArray[i].toLowerCase() ) );
             } else {
 
-                innerStringBuilder.append( new String( customFieldNameArray[i].substring(0, 1) + customFieldNameArray[i].substring(1) ) );
+                innerStringBuilder.append( new String( customFieldNameArray[i].substring(0, 1).toUpperCase() + customFieldNameArray[i].substring(1).toLowerCase() ) );
             }
         }
         customFields.add( innerStringBuilder.append( new String("String ${customField.getName()} = '${customField.getId()}';") ) );
