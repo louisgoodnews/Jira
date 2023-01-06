@@ -1,0 +1,125 @@
+
+//MADE BY LOUIS GOODNEWS
+
+/*
+DESCRIPTION:
+This script will generate a random 16 digit number to be passed as serial no. to device issues in the asset management project
+*/
+
+//IMPORT:
+import java.util.stream.IntStream
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import java.util.Random
+
+//CONSTANTS:
+class CONSTANTS{
+static List<String> NUMBERLIST = ["1","2","3","4","5","6","7","8","9","0"]
+static List<String> LOWERCASELETTERS = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","u","v","w","x","y","z"]
+static List<String> UPPERCASELETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","U","V","W","X","Y","Z"]
+}
+
+//LOGGER:
+Logger logger = Logger.getLogger("Script listener: 'issue_created' event")
+logger.setLevel(Level.DEBUG)
+
+//INITIALISATION:
+Random random = new Random()
+ArrayList<String> serialNumberList = []
+StringBuilder stringBuilder = new StringBuilder()
+
+//DECLARATION:
+int[] letterIntArray = random.ints(16L, 0, 25).toArray()
+int[] numberIntArray = random.ints(16L, 0, 9).toArray()
+HttpResponse currentIssue = get("""rest/api/latest/issue/${issue.key}""")
+    .header("Accept", "application/json")
+    .asObject(Map)
+    
+//TASK(S):
+try{
+    if(currentIssue.body.fields.issuetype.id.toString().equals("10110")){
+         //-> generate random number to fetch list item from constants at positions reflecting the random number
+        for(Integer i = 0; i < 16; i++){
+            int[] innerIntArray = random.ints(1L, 1, 4).toArray() //-> random picker to define from which constants list to select a list item
+            if(innerIntArray.getAt(0) == 1){
+                serialNumberList.add(CONSTANTS.NUMBERLIST.getAt(numberIntArray.getAt(i)))
+            }
+        if(innerIntArray.getAt(0) == 2){
+            serialNumberList.add(CONSTANTS.LOWERCASELETTERS.getAt(letterIntArray.getAt(i)))
+        }
+        if(innerIntArray.getAt(0) == 3){
+                serialNumberList.add(CONSTANTS.UPPERCASELETTERS.getAt(letterIntArray.getAt(i)))
+            }
+        }
+    
+        serialNumberList.add(4, "-")
+        serialNumberList.add(9, "-")
+        serialNumberList.add(14, "-")
+    
+        for(Integer i = 0; i < serialNumberList.size(); i++){
+        stringBuilder.append(serialNumberList.getAt(i))
+        }
+        
+        //-> edit out "null" entries, if they exist
+        if(stringBuilder.toString().contains("null")){
+            int[] constantsChooser = random.ints(1L, 1, 4).toArray()
+            if(constantsChooser.getAt(0) == 1){
+                stringBuilder.toString().replace("null", CONSTANTS.NUMBERLIST.getAt(random.ints((CONSTANTS.NUMBERLIST.size()) as Long, 0, CONSTANTS.NUMBERLIST.size()).toArray().getAt(0)))
+                //return "CONSTANTS.NUMBERLIST: ${stringBuilder}"
+            }
+            if(constantsChooser.getAt(0) == 2){
+                stringBuilder.toString().replace("null", CONSTANTS.LOWERCASELETTERS.getAt(random.ints((CONSTANTS.LOWERCASELETTERS.size()) as Long, 0, CONSTANTS.LOWERCASELETTERS.size()).toArray().getAt(0)))
+                //return "CONSTANTS.LOWERCASELETTERS: ${stringBuilder}"
+            }
+            if(constantsChooser.getAt(0) == 3){
+                stringBuilder.toString().replace("null", CONSTANTS.UPPERCASELETTERS.getAt(random.ints((CONSTANTS.UPPERCASELETTERS.size()) as Long, 0, CONSTANTS.UPPERCASELETTERS.size()).toArray().getAt(0)))
+                //return "CONSTANTS.UPPERCASELETTERS: ${stringBuilder}"
+            }
+        }
+        
+        HttpResponse updateSerialnummer = put("""rest/api/latest/issue/${currentIssue.body.key}""")
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .body(
+            [
+                fields:[
+                    customfield_10157: stringBuilder
+                    ]
+                ]
+            )
+        .asJson()
+    
+        if(updateSerialnummer.status != 204){
+            return """updateSerialnummer failed: ${updateSerialnummer.status} | ${updateSerialnummer}"""
+        }
+    }
+}catch(Exception e){
+    logger.error("The task failed due to: ${e}")
+    
+    //-> create error issue on exception:
+    HttpResponse createErrorIssue = post("rest/api/latest/issue")
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .body(
+            [
+                fields:[
+                    project:[
+                        id: "10124"
+                        ],
+                    summary: "Script listener: 'issue_created' event no.2 (create inventory number) failed",
+                    description: """The task failed due to: \n\n ${e} \n\n On ${new Date()}.""",
+                    issuetype: [
+                        id: "10114"
+                        ]
+                ]
+            ]
+        )
+        .asJson()
+        
+    if(!createErrorIssue.status.toString().equals("204")){
+        logger.error("""Creating an error issue resulted ${createErrorIssue.status} with message ${createErrorIssue.body}""")
+    }
+}
+
+//RETURN:
+return "done!"
