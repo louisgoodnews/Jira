@@ -1,0 +1,99 @@
+
+//MADE BY LOUIS GOODNEWS
+
+/*
+DESCRIPTION:
+this script will update the custom fields "Projektschlüssel" and "Projekt Vorgang" in bulk for the result of a provided jql string.
+To this end the script will perform a jql to find the corresponding issue for the project issues "Projektschlüssel" value.
+*/
+
+//IMPORT:
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import org.json.JSONArray
+import org.json.JSONObject
+
+//CONSTANTS:
+class CONSTANTS{
+    
+    //PARAMETERS:
+    static HashMap<String, String> RELEVANTISSUETYPEHASH = [
+        "10101" : "10118",
+        "10100" : "10119",
+        "10102" : "10120"
+        ]
+}
+
+//LOGGER:
+Logger logger = Logger.getLogger("com.louis.scriptrunner.console.bulkUpdateProjectAssets")
+logger.setLevel(Level.DEBUG)
+
+//DECLARATION:
+HttpResponse getAssetIssues = get("rest/api/latest/search/").header("Accept", "application/json").queryString("jql", "project = 10122 AND issuetype = 10100").asJson()
+
+//TASK(S):
+//try{
+    for(assetIssue in getAssetIssues.body.array.get(0).issues){
+        
+        HttpResponse getProjectIssue = get("rest/api/latest/search/").header("Accept", "application/json").queryString("jql", """project = 10100 AND summary ~ '${assetIssue.fields.summary}'""").asJson()
+        
+        logger.debug("____________________________________________________________________________________________________")
+        logger.debug("""Current Asset issue: ${assetIssue.key}""")
+        logger.debug("""JQL query string used: project = 10100 AND summary ~ '${assetIssue.fields.summary}'""")
+        logger.debug("""Project type issue found: ${getProjectIssue.body.array.get(0).issues.get(0).key}""")
+        logger.debug("____________________________________________________________________________________________________")
+        
+        HttpResponse updateProjectAsset = put("""rest/api/latest/issue/${assetIssue.key}""")
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(
+                [
+                    fields:[
+                        customfield_10122: [
+                                id: """${getProjectIssue.body.array.get(0).issues.get(0).fields.customfield_10122.id}"""
+                            ],
+                        customfield_10123: [
+                                id: """${getProjectIssue.body.array.get(0).issues.get(0).fields.assignee.accountId}"""
+                            ],
+                        customfield_10128: """${getProjectIssue.body.array.get(0).issues.get(0).fields.customfield_10128}""",
+                        customfield_10147: """${getProjectIssue.body.array.get(0).issues.get(0).fields.customfield_10147}""",
+                        customfield_10148: """${getProjectIssue.body.array.get(0).issues.get(0).fields.customfield_10148}""",
+                        customfield_10149: [
+                                id: """${CONSTANTS.RELEVANTISSUETYPEHASH.get(getProjectIssue.body.array.get(0).issues.get(0).fields.issuetype.id)}"""
+                            ],
+                        customfield_10150: """${getProjectIssue.body.array.get(0).issues.get(0).fields.customfield_10122.projectTypeKey}""",
+                        customfield_10151: """${getProjectIssue.body.array.get(0).issues.get(0).key}""",
+                        customfield_10159: """${getProjectIssue.body.array.get(0).issues.get(0).fields.customfield_10159}"""
+                        ]
+                ]
+            )
+            .asJson()
+        
+        if(updateProjectAsset.status != 204){
+            logger.debug("""updateProjectAsset failed: ${updateProjectAsset.status} | ${updateProjectAsset}""")
+        }
+        
+        HttpResponse updateProjectIssue = put("""rest/api/latest/issue/${getProjectIssue.body.array.get(0).issues.get(0).key}""")
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(
+                [
+                    fields:[
+                        customfield_10151: """${assetIssue.key}""", //-> "Projekt Vorgang" enter project asset key
+                        customfield_10147: """${assetIssue.fields.customfield_10147}""" //-> "Projektschüssel" copy from project asset
+                        ]
+                ]
+            )
+            .asJson()
+        
+        if(updateProjectIssue.status != 204){
+            logger.debug("""updateProjectIssue failed: ${updateProjectIssue.status} | ${updateProjectIssue}""")
+        }
+        
+    }
+//}catch(Exception e){
+//    logger.debug("""The task dailed due to: ${e}.""")
+//}
+
+//RETURN:
+return "done!"
