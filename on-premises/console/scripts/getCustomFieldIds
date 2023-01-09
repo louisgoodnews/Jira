@@ -40,10 +40,10 @@ try{
                     outerStringBuilder.append(stringList[i].substring(1).toLowerCase());
                 }
             }
-            result.add(new String("String ${outerStringBuilder} = '${customField.getId()}';"));
+            result.add(new String("String ${outerStringBuilder} = '${customField.getId()}'; //${customField.getName()}"));
         }else{
 
-            result.add(new String("String ${customField.getName()} = '${customField.getId()}';"));
+            result.add(new String("String ${customField.getName()} = '${customField.getId()}'; //${customField.getName()}"));
         }
     }
 } catch(Exception e){
