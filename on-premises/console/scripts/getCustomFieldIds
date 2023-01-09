@@ -47,6 +47,7 @@ try{
         }
     }
 } catch(Exception e){
+
     logger.error("Executing script failed with exception: ${e}!");
 }
 return ["size": listOfCustomFields.size(), "fields":result];
