@@ -8,47 +8,40 @@
 
 import com.atlassian.jira.component.ComponentAccessor;
 
-import com.atlassian.jira.issue.fields.CustomFieldManager;
+import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.fields.CustomField;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-
-Logger logger = Logger.getLogger("de.louis.scriptrunner.console.getCustomFieldIds");
-logger.setLevel(Level.DEBUG);
-
-StringBuilder innerStringBuilder = new StringBuilder();
+final CustomFieldManager customFieldManager = ComponentAccessor.getCustomFieldManager();
+LinkedList<CustomField> listOfCustomFields = customFieldManager.getCustomFieldObjects() as LinkedList<CustomField>;
 LinkedList<String> result = new LinkedList();
 
-LinkedList<CustomField> customFields = ComponentAccessor.getCustomFieldManager().getCustomFieldObjects();
-
-customFields.each { CustomField customField ->
 try{
 
-    if (customField.getName().contains(" ")) {
+    listOfCustomFields.each{ CustomField customField ->
 
-        String[] customFieldNameArray = customField.getName().split(" ");
-        for (Integer i = 0; i < customFieldNameArray.size(); i++) {
-            
-            if (i == 0) {
+        if(customField.getName().contains(" ")){
 
-                innerStringBuilder.append( new String( customFieldNameArray[i].toLowerCase() ) );
-            } else {
+            StringBuilder outerStringBuilder = new StringBuilder();
+            String[] stringList = customField.getName().split(" ");
+            for(Integer i = 0; i < stringList.size(); i++){
 
-                innerStringBuilder.append( new String( customFieldNameArray[i].substring(0, 1).toUpperCase() + customFieldNameArray[i].substring(1).toLowerCase() ) );
+                if(i == 0){
+
+                    outerStringBuilder.append(stringList[i].toLowerCase());
+                }else{
+
+                    outerStringBuilder.append(stringList[i].substring(0, 1).toUpperCase());
+                    outerStringBuilder.append(stringList[i].substring(1).toLowerCase());
+                }
             }
+            result.add(new String("String ${outerStringBuilder} = '${customField.getId()}';"));
+        }else{
+
+            result.add(new String("String ${customField.getName()} = '${customField.getId()}';"));
         }
-        customFields.add( innerStringBuilder.append( new String("String ${customField.getName()} = '${customField.getId()}';") ) );
-        innerStringBuilder.delete(0, innerStringBuilder.length());        
-    } else {
-
-        result.add( new String("String ${ customField.getName() } = '${ customField.getId() }';") );
     }
-} catch (Exception e) {
-
-    logger.error("Ran into exception ${e} while running code!");
-    return;
+} catch(Exception e){
+    logger.error("Executing script failed with exception: ${e}!");
 }
-};
+return ["size": listOfCustomFields.size(), "fields":result];
 
-return ["size": customFields.size(), "fields": result];
