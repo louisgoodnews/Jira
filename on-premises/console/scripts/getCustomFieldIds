@@ -25,10 +25,17 @@ try{
 
     listOfCustomFields.each{ CustomField customField ->
 
-        if(customField.getName().contains(" ")){
-
+        if(customField.getName().contains(" ") || customField.getName().contains("-")){
+			
+            String[] stringList;
             StringBuilder outerStringBuilder = new StringBuilder();
-            String[] stringList = customField.getName().split(" ");
+            if(customField.getName().contains(" ")){                
+                
+            	stringList = customField.getName().split(" ");
+            }else if(customField.getName().contains("-")){
+                
+            	stringList = customField.getName().split("-");
+            }
             for(Integer i = 0; i < stringList.size(); i++){
 
                 if(i == 0){
@@ -41,7 +48,7 @@ try{
                 }
             }
             result.add(new String("String ${outerStringBuilder} = '${customField.getId()}'; //${customField.getName()}"));
-            outerStringBuilder.clear();
+            outerStringBuilder.delete(0, outerStringBuilder.length());
         }else{
 
             result.add(new String("String ${customField.getName().toLowerCase()} = '${customField.getId()}'; //${customField.getName()}"));
