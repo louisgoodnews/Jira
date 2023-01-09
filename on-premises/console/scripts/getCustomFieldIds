@@ -43,7 +43,7 @@ try{
             result.add(new String("String ${outerStringBuilder} = '${customField.getId()}'; //${customField.getName()}"));
         }else{
 
-            result.add(new String("String ${customField.getName()} = '${customField.getId()}'; //${customField.getName()}"));
+            result.add(new String("String ${customField.getName().toLowerCase()} = '${customField.getId()}'; //${customField.getName()}"));
         }
     }
 } catch(Exception e){
