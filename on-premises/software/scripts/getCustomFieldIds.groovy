@@ -14,7 +14,7 @@ import com.atlassian.jira.issue.fields.CustomField;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
-final Logger logger = Logger.getLogger("de.louis.scriptrunner.console.getCustomFieldIds");
+final Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.scripts.getCustomFieldIds");
 logger.setLevel(Level.DEBUG);
 
 final CustomFieldManager customFieldManager = ComponentAccessor.getCustomFieldManager();

@@ -29,7 +29,7 @@ import org.apache.log4j.Level;
 private MutableIssue cloneIssueObject(String sourceKey, String targetProjectKey, String issueTypeName, String summary, String description, ApplicationUser applicationUser){
 
 
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.console.methods.cloneIssueObject");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.cloneIssueObject");
     logger.setLevel(Level.DEBUG);
 
     IssueManager issueManager = ComponentAccessor.getIssueManager();

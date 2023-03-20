@@ -10,7 +10,7 @@ import java.lang.StringBuffer;
 
 private LinkedList<GroovyResultSet> executeSqlSearch(String queryString, Boolean doLog){
 
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.executeSqlSearch");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.executeSqlSearch");
     logger.setLevel(Level.INFO);
 
     LinkedList<GroovyResultSet> result = new LinkedList();

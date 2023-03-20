@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 
 private void attachLocalFileToIssue(String issueKey, String filename, String pathOfFile, String contentType, Boolean doLog){
 
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.attachLocalFileToIssue");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.attachLocalFileToIssue");
     logger.setLevel(Level.DEBUG);
 
     IssueManager issueManager = ComponentAccessor.getIssueManager();

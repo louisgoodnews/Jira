@@ -12,7 +12,7 @@ import com.atlassian.jira.portal.PortalPage;
 
 private LinkedList<HashMap> findUserDashBoards(String queryString){
 
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.findUserDashBoards");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.findUserDashBoards");
     logger.setLevel(Level.DEBUG);
 
     ApplicationUser currentUser = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();

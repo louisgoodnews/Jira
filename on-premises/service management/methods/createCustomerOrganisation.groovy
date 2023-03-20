@@ -28,7 +28,7 @@ private CustomerOrganization createCustomerOrganisation (String organisationName
  
     LinkedList<ApplicationUser> result;
  
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.createCustomerOrganisation");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.service-management.methods.createCustomerOrganisation");
     logger.setLevel(Level.DEBUG);
  
     ApplicationUser applicationUser = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();

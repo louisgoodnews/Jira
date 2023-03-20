@@ -14,7 +14,7 @@ class CONSTANTS {
     static final Boolean LOG_EXIT_CODE = false; //-> if true, exit code will be logged
 }
   
-Logger logger = Logger.getLogger("de.louis.scriptrunner.console.runShellCommands");
+Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.scripts.runShellCommands");
 logger.setLevel(Level.INFO);
   
 Runtime runtime = Runtime.getRuntime();

@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
 //LOGGER:
-Logger logger = Logger.getLogger("com.louis.scriptrunner.console.getAllBoards");
+Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.getAllBoards");
 logger.setLevel(Level.INFO);
 
 //INITIALISATION:

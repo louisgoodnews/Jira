@@ -60,7 +60,7 @@ class CONSTANTS{
     ]
 }
 
-Logger logger = Logger.getLogger("com.louis.console.debugging.createProjectDocumentation")
+Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.scripts.createProjectDocumentation")
 logger.setLevel(Level.DEBUG)
 
 Issue issue;

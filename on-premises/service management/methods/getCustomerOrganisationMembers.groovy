@@ -31,7 +31,7 @@ private LinkedList<ApplicationUser> getCustomerOrganisationMembers (String organ
  
     LinkedList<ApplicationUser> result;
  
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.getCustomerOrganisationMembers");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.service-management.methods.getCustomerOrganisationMembers");
     logger.setLevel(Level.DEBUG);
  
     UsersInOrganizationQuery.Builder usersInOrganizationQueryBuilder = ComponentAccessor.getComponent(UsersInOrganizationQuery.Builder.class);

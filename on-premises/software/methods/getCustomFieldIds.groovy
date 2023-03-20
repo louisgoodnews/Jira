@@ -8,7 +8,7 @@ import org.apache.log4j.Level;
 
 private LinkedHashMap<String, Serializable> getCustomFieldIds (){
 
-    final Logger logger = Logger.getLogger("de.louis.scriptrunner.console.getCustomFieldIds");
+    final Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.getCustomFieldIds");
     logger.setLevel(Level.DEBUG);
 
     final CustomFieldManager customFieldManager = ComponentAccessor.getCustomFieldManager();

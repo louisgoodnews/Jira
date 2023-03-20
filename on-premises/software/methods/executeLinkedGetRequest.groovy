@@ -10,7 +10,7 @@ import  org.apache.log4j.Level;
   
 private LinkedHashMap<String, Object> executeLinkedGetRequest(String requestUrl) {
       
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.executeLinkedGetRequest");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.executeLinkedGetRequest");
     logger.setLevel(Level.DEBUG);
     final ApplicationLink confluenceLink = ComponentLocator.getComponent(ApplicationLinkService).getPrimaryApplicationLink(ConfluenceApplicationType);
     try {

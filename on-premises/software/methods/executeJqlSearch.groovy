@@ -14,7 +14,7 @@ private LinkedList<MutableIssue> executeJqlSearch(String searchString, Boolean d
     Logger logger;
     if (doLog) {
  
-        logger = Logger.getLogger("de.louis.scriptrunner.method.executeJqlSearch");
+        logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.executeJqlSearch");
         logger.setLevel(Level.TRACE);
     }
     LinkedList<MutableIssue> result = new LinkedList<MutableIssue>();

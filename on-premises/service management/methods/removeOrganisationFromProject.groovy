@@ -29,7 +29,7 @@ private void removeOrganisationFromProject (String organisationName, String proj
   
     LinkedList<ApplicationUser> result;
   
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.removeOrganisationFromProject");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.service-management.methods.removeOrganisationFromProject");
     logger.setLevel(Level.DEBUG);
   
     ApplicationUser applicationUser = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();

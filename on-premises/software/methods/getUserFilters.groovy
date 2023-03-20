@@ -10,7 +10,7 @@ import com.atlassian.jira.user.ApplicationUser;
 
 private LinkedList<HashMap> getUserFilters(){
 
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.findUserFilters");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.findUserFilters");
     logger.setLevel(Level.DEBUG);
 
     ApplicationUser currentUser = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();

@@ -31,7 +31,7 @@ import org.apache.log4j.Level;
 
 private MutableIssue createIssueObject(String projectKey, String summary, String description,String issueTypeName, ApplicationUser applicationUser){
 
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.console.methods.createIssueObject");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.createIssueObject");
     logger.setLevel(Level.DEBUG);
 
     IssueService issueService = ComponentAccessor.getIssueService();

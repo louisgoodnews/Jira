@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
  
 private void sendEmail(String address, String cc, String body, String subject) {
  
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.sendEmail");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.sendEmail");
     logger.setLevel(Level.DEBUG);
  
     MailServerManager mailServerManager = ComponentAccessor.getMailServerManager();

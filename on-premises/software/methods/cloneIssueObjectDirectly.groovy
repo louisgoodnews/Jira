@@ -20,7 +20,7 @@ import org.apache.log4j.Level;
 
 private void cloneIssueObjectDirectly(String issueKey, String projectKey, String summary, ApplicationUser applicationUser, Boolean cloneAttachments, Boolean cloneSubTasks, Boolean cloneLinks){
 
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.console.methods.cloneIssueObjectDirectly");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.cloneIssueObjectDirectly");
     logger.setLevel(Level.DEBUG);
     
     LinkedHashMap<CustomField, Optional<Boolean>> cloneOptionSelections = new LinkedHashMap();

@@ -14,7 +14,7 @@ private void transitionIssue (MutableIssue issue, Integer transitionId, Boolean 
     Logger logger;
     if (doLog) {
  
-        logger = Logger.getLogger("de.louis.scriptrunner.method.transitionIssue");
+        logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.transitionIssue");
         logger.setLevel(Level.TRACE);
     }
     IssueManager issueManager = ComponentAccessor.getIssueManager();

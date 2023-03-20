@@ -29,7 +29,7 @@ private void addUsersToCustomerOrganisation (String organisationName, String pro
  
     LinkedList<ApplicationUser> result;
  
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.addUsersToCustomerOrganisation");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.service-management.methods.addUsersToCustomerOrganisation");
     logger.setLevel(Level.DEBUG);
  
     ApplicationUser applicationUser = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();

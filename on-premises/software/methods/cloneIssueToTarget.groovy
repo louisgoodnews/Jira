@@ -12,7 +12,7 @@ import org.apache.log4j.Level;
 
 private MutableIssue cloneIssueToTarget(String issueKey){
     
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.console.methods.cloneIssueToTarget");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.cloneIssueToTarget");
     logger.setLevel(Level.DEBUG);
     
     IssueManager issueManager = ComponentAccessor.getIssueManager();

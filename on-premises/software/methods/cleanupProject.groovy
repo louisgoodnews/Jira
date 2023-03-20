@@ -10,7 +10,7 @@ import org.apache.log4j.Logger
 
 private void cleanupProject(String projectKey, Boolean deleteProjectIssues, Boolean deleteProjectVersions, Boolean resetProjectIssueCount, Boolean deleteProjectComponents, Boolean deleteProjectObject){
 
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.cleanupProject");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.software.methods.cleanupProject");
     logger.setLevel(Level.DEBUG);
 
     ProjectManager projectManager = ComponentAccessor.getProjectManager();

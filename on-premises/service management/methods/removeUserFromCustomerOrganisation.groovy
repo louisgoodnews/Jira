@@ -29,7 +29,7 @@ private void removeUsersFromCustomerOrganisation (String organisationName, Strin
   
     LinkedList<ApplicationUser> result;
   
-    Logger logger = Logger.getLogger("de.louis.scriptrunner.methods.removeUsersFromCustomerOrganisation");
+    Logger logger = Logger.getLogger("louisgoodnews.jira.on-premises.service-management.methods.removeUsersFromCustomerOrganisation");
     logger.setLevel(Level.DEBUG);
   
     ApplicationUser applicationUser = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();
