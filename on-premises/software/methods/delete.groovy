@@ -9,7 +9,7 @@ private Map delete(String url, Map<String, String> requestHeaderMap){
     @PluginModule
     TrustedRequestFactory trustedRequestFactory
 
-    Request request = trustedRequestFactory.createtrustedRequest(Request.MethodType.DELETE, url);
+    Request request = trustedRequestFactory.createTrustedRequest(Request.MethodType.DELETE, url);
     for(String requestHeader : requestHeaderMap.keySet()){
 
         request.addHeader(requestHeader, requestHeaderMap.get(requestHeader))

@@ -9,7 +9,7 @@ private Map put(String url, Map<String, String> requestHeaderMap, Map<String, St
     @PluginModule
     TrustedRequestFactory trustedRequestFactory
 
-    Request request = trustedRequestFactory.createtrustedRequest(Request.MethodType.PUT, url);
+    Request request = trustedRequestFactory.createTrustedRequest(Request.MethodType.PUT, url);
     for(String requestHeader : requestHeaderMap.keySet()){
 
         request.addHeader(requestHeader, requestHeaderMap.get(requestHeader))
