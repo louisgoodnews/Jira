@@ -10,9 +10,12 @@ private Map delete(String url, Map<String, String> requestHeaderMap){
     TrustedRequestFactory trustedRequestFactory
 
     Request request = trustedRequestFactory.createTrustedRequest(Request.MethodType.DELETE, url);
-    for(String requestHeader : requestHeaderMap.keySet()){
+    if(requestHeaderMap){
 
-        request.addHeader(requestHeader, requestHeaderMap.get(requestHeader))
+        for(String requestHeader : requestHeaderMap.keySet()){
+
+            request.addHeader(requestHeader, requestHeaderMap.get(requestHeader));
+        }
     }
     return new JsonSlurper().parseText(request.execute()) as Map;
 }
