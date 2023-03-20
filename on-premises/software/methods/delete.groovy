@@ -4,10 +4,10 @@ import com.atlassian.sal.api.net.Request;
 import com.atlassian.sal.api.net.TrustedRequestFactory;
 import com.onresolve.scriptrunner.runner.customisers.PluginModule;
 
-@PluginModule
-TrustedRequestFactory trustedRequestFactory
-
 private Map delete(String url, Map<String, String> requestHeaderMap){
+        
+    @PluginModule
+    TrustedRequestFactory trustedRequestFactory
 
     Request request = trustedRequestFactory.createtrustedRequest(Request.MethodType.DELETE, url);
     for(String requestHeader : requestHeaderMap.keySet()){
