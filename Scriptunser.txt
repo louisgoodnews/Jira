@@ -1,0 +1,12 @@
+Scriptunser, das du läufst in unseren Jira Instanzen,
+dein Plugin komme, die Scriptrunner Erweiterung komme.
+
+Dein Script laufe, wie in der Konsole, so auch in der Folgefunktion.
+
+Vergib' uns unsere Logik- und Syntaxfehler, so wie auch wir der Jira API vergeben.
+
+Führe uns nicht in die Versuchung des def, sondern führe uns zum Import der richtigen Klasse.
+
+Denn dein ist die Implementierung der Lösung in Groovy,
+
+return.

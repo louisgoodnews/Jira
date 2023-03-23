@@ -1,0 +1,12 @@
+Scriptunser which runeth in our Jira instances,
+your plugin be installeth and the scriptrunner extension cometh.
+
+Your script runeth, as in the console, so in the postfunction.
+
+Forgivth us our logic and syntax errors, as we forgiveth the Jira API.
+
+Lead us not into the temptation of def, but lead us to import the right class.
+
+Because thine is the implementation of the solution in Groovy,
+
+return.
