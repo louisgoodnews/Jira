@@ -1,0 +1,87 @@
+{
+    "cloud": true,
+    "rules": [
+        {
+            "id": 5465107,
+            "clientKey": "afcd4d03-52a4-3d28-8121-19380a34aba5",
+            "name": "Create Outlook event",
+            "state": "DISABLED",
+            "description": "This automatino rule will create an Outlook event from a given issue vie REST.",
+            "authorAccountId": "606c517296e8d60068bc7066",
+            "actor": {
+                "type": "ACCOUNT_ID",
+                "value": "557058:f58131cb-b67d-43c7-b30d-6b58d40bd077"
+            },
+            "created": 1643877899049,
+            "updated": 1643877972830,
+            "trigger": {
+                "id": "91140818",
+                "component": "TRIGGER",
+                "parentId": null,
+                "conditionParentId": null,
+                "schemaVersion": 1,
+                "type": "jira.manual.trigger.issue",
+                "value": {
+                    "groups": [],
+                    "inputFromUsers": false,
+                    "inputPrompts": []
+                },
+                "children": [],
+                "conditions": [],
+                "connectionId": null
+            },
+            "components": [
+                {
+                    "id": "91140819",
+                    "component": "ACTION",
+                    "parentId": null,
+                    "conditionParentId": null,
+                    "schemaVersion": 1,
+                    "type": "jira.issue.outgoing.webhook",
+                    "value": {
+                        "url": "https://graph.microsoft.com/v1.0/me/events",
+                        "headers": [
+                            {
+                                "id": "_header_1643877477554",
+                                "name": "\"Accept\"",
+                                "value": "\"application/json\"",
+                                "headerSecure": false
+                            },
+                            {
+                                "id": "_header_1643877504548",
+                                "name": "\"Content-Type\"",
+                                "value": "\"application/json\"",
+                                "headerSecure": false
+                            }
+                        ],
+                        "sendIssue": false,
+                        "contentType": "custom",
+                        "customBody": "{\n   \"subject\":\"{{triggerIssue.summary}}\",\n   \"start\":{\n      \"dateTime\":\"2022-02-03T08:26:44.250Z\",\n      \"timeZone\":\"UTC\"\n   },\n   \"end\":{\n      \"dateTime\":\"2022-02-03T08:26:44.250Z\",\n      \"timeZone\":\"UTC\"\n   },\n   \"attendees\":[\n      {\n         \"type\":\"required\",\n         \"status\":{\n            \"response\":\"none\",\n            \"time\":\"0001-01-01T00:00:00Z\"\n         },\n         \"emailAddress\":{\n            \"name\":\"{{initiator.displayName}}\",\n            \"address\":\"{{initiator.emailAddress}}\"\n         }\n      }\n   ],\n   \"organizer\":{\n      \"emailAddress\":{\n         \"name\":\"{{initiator.displayName}}\",\n         \"address\":\"{{initiator.emailAddress}}\"\n      }\n   }\n}",
+                        "method": "POST",
+                        "responseEnabled": true,
+                        "continueOnErrorEnabled": false
+                    },
+                    "children": [],
+                    "conditions": [],
+                    "connectionId": null
+                }
+            ],
+            "canOtherRuleTrigger": false,
+            "notifyOnError": "FIRSTERROR",
+            "projects": [],
+            "labels": [
+                60873,
+                64983,
+                64997
+            ],
+            "tags": [],
+            "ruleScope": {
+                "resources": [
+                    "ari:cloud:jira::site/635767cf-e2a2-476a-b9a2-644901ff02c4"
+                ]
+            },
+            "writeAccessType": "UNRESTRICTED",
+            "collaborators": []
+        }
+    ]
+}
