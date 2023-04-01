@@ -6,7 +6,7 @@
             "clientKey": "afcd4d03-52a4-3d28-8121-19380a34aba5",
             "name": "Create Outlook event",
             "state": "DISABLED",
-            "description": "This automatino rule will create an Outlook event from a given issue vie REST.",
+            "description": "This automation rule will create an Outlook event from a given issue via REST.",
             "authorAccountId": "606c517296e8d60068bc7066",
             "actor": {
                 "type": "ACCOUNT_ID",

@@ -15,7 +15,7 @@ private LinkedHashMap<String, Serializable> findApplicationUserFromDirectory(Str
     List<Long> directoyIdList = applicationUserList*.getDirectoryId().unique();
     Long relevantDirectoryId = applicationUserList*.getDirectoryId().unique().find{ Long direcotyId ->
 
-        userManager.getDirectory(direcotyId).getName().equalsIgnoreCase(directoryName);
+        userManager.getDirectory(direcotyId).getName().toLowerCase().contains(directoryName) || userManager.getDirectory(direcotyId).getName().toUpperCase().contains(directoryName);
     };
     LinkedList<ApplicationUser> result = applicationUserList.findAll{    ApplicationUser applicationUser ->
 
