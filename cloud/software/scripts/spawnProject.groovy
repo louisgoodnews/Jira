@@ -14,7 +14,7 @@ class CONSTANTS{
     static String AUTHORIZATION = ""; //provide a 64bit encoded authorization string
 }
 
-Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts");
+Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.spawnProjects");
 logger.setLevel(Level.DEBUG);
 
 HttpResponse createProject;
