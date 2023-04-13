@@ -57,29 +57,29 @@ listOfProjectsResponse.body.values.each{   Map project ->
     // Loop through the issues and update the comments if necessary
     listOfIssuesResponse.body.issues.each{   Map searchResult ->
 
-        HttpResponse<Map> issue = get("/rest/api/3/issue/${issue.key}")
+        HttpResponse<Map> issueResponse = get("/rest/api/3/issue/${issue.key}")
                                     .header("Accept", "application/json")
                                     .header("Content-Type", "application/json")
                                     .asObject(Map)
         
         // Check if the response status is not 200
-        if (issue.status != 200){
+        if (issueResponse.status != 200){
 
             // Log error and return error messages
-            logger.error("GET 'issue' failed with 'status' ${issue.status} 'statusText' ${issue.statusText}!")
-            return issue.body.errorMessages
+            logger.error("GET 'issueResponse' failed with 'status' ${issueResponse.status} 'statusText' ${issueResponse.statusText}!")
+            return issueResponse.body.errorMessages
         }
 
-        if(issue.body.fields.description.contains(onpremiseBaseUrl)){
+        if(issueResponse.body.fields.description.contains(onpremiseBaseUrl)){
 
             // Send a PUT request to update the issue with the new comment text
-            HttpResponse<Map> listOfIssuesResonse = put("/rest/api/3/issue/${issue.body.key}")
+            HttpResponse<Map> listOfIssuesResonse = put("/rest/api/3/issue/${issueResponse.body.key}")
                                                 .header("Accept", "application/json")
                                                 .header("Content-Type", "application/json")
                                                 .body(
                                                     [
                                                         "fields":[
-                                                            "description": issue..body.fields.replaceAll(onpremiseBaseUrl, cloudBaseUrl)
+                                                            "description": issueResponse.body.fields.replaceAll(onpremiseBaseUrl, cloudBaseUrl)
                                                         ]
                                                     ]
                                                 )
@@ -95,7 +95,7 @@ listOfProjectsResponse.body.values.each{   Map project ->
         }
 
         // Send a GET request to retrieve the comments for the current issue
-        HttpResponse<Map> listOfIssuesCommentsResonse = get("/rest/api/3/issue/${issue.key}/comment")
+        HttpResponse<Map> listOfIssuesCommentsResonse = get("/rest/api/3/issue/${issueResponse.key}/comment")
                                             .header("Accept", "application/json")
                                             .header("Content-Type", "application/json")
                                             .asObject(Map)
@@ -113,7 +113,7 @@ listOfProjectsResponse.body.values.each{   Map project ->
 
             if(comment.body.content.content.text.contains(onpremiseBaseUrl)){
                 
-                HttpResponse<Map> updateCommentRequest = put("/rest/api/3/issue/${issue.key}/comment/${comment.id}")
+                HttpResponse<Map> updateCommentRequest = put("/rest/api/3/issue/${issueResponse.key}/comment/${comment.id}")
                                             .header("Accept", "application/json")
                                             .header("Content-Type", "application/json")
                                             .body(
