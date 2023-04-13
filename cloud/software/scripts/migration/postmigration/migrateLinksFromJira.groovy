@@ -31,40 +31,55 @@ HttpResponse<Map> listOfProjectsResponse = get("rest/api/3/project/search")
 
 // Check if the response status is not 200
 if (listOfProjectsResponse.status != 200){
+
     // Log error and return error messages
     logger.error("GET 'listOfProjectsResponse' failed with 'status' ${listOfProjectsResponse.status} 'statusText' ${listOfProjectsResponse.statusText}!")
     return listOfProjectsResponse.body.errorMessages
 }
 
 // Loop through the projects and send a GET request to retrieve a list of issues for each project
-listOfProjectsResponse.body.each.values.each{   Map project ->
+listOfProjectsResponse.body.values.each{   Map project ->
 
     HttpResponse<Map> listOfIssuesResponse = get("/rest/api/3/search")
                                             .header("Accept", "application/json")
                                             .header("Content-Type", "application/json")
-                                            .queryString("jql", "project = ${project.key} AND text ~ ${onpremiseBaseUrl}")
+                                            .queryString("jql", "project = " + project.key + " AND text ~ '" + onpremiseBaseUrl + "'")
                                             .asObject(Map)
 
     // Check if the response status is not 200
     if (listOfIssuesResponse.status != 200){
+
         // Log error and return error messages
         logger.error("GET 'listOfIssuesResponse' failed with 'status' ${listOfIssuesResponse.status} 'statusText' ${listOfIssuesResponse.statusText}!")
         return listOfIssuesResponse.body.errorMessages
     }
 
     // Loop through the issues and update the comments if necessary
-    listOfIssuesResponse.body.issues.each{   issue ->
+    listOfIssuesResponse.body.issues.each{   Map searchResult ->
 
-        if(issue.description.contains(onpremiseBaseUrl)){
+        HttpResponse<Map> issue = get("/rest/api/3/issue/${issue.key}")
+                                    .header("Accept", "application/json")
+                                    .header("Content-Type", "application/json")
+                                    .asObject(Map)
+        
+        // Check if the response status is not 200
+        if (issue.status != 200){
+
+            // Log error and return error messages
+            logger.error("GET 'issue' failed with 'status' ${issue.status} 'statusText' ${issue.statusText}!")
+            return issue.body.errorMessages
+        }
+
+        if(issue.body.fields.description.contains(onpremiseBaseUrl)){
 
             // Send a PUT request to update the issue with the new comment text
-            HttpResponse<Map> listOfIssuesResonse = put("/rest/api/3/issue/${issue.key}")
+            HttpResponse<Map> listOfIssuesResonse = put("/rest/api/3/issue/${issue.body.key}")
                                                 .header("Accept", "application/json")
                                                 .header("Content-Type", "application/json")
                                                 .body(
                                                     [
-                                                        "fiels":[
-
+                                                        "fields":[
+                                                            "description": issue..body.fields.replaceAll(onpremiseBaseUrl, cloudBaseUrl)
                                                         ]
                                                     ]
                                                 )
@@ -72,13 +87,11 @@ listOfProjectsResponse.body.each.values.each{   Map project ->
 
             // Check if the response status is not 200
             if (listOfIssuesResonse.status != 200){
+
                 // Log error and return error messages
                 logger.error("PUT 'listOfIssuesResonse' failed with 'status' ${listOfIssuesResonse.status} 'statusText' ${listOfIssuesResonse.statusText}!")
                 return listOfIssuesResonse.body.errorMessages
             }
-        } else {
-
-            continue
         }
 
         // Send a GET request to retrieve the comments for the current issue
@@ -89,6 +102,7 @@ listOfProjectsResponse.body.each.values.each{   Map project ->
         
         // Check if the response status is not 200
         if (listOfIssuesCommentsResonse.status != 200){
+
             // Log error and return error messages
             logger.error("GET 'listOfIssuesCommentsResonse' failed with 'status' ${listOfIssuesCommentsResonse.status} 'statusText' ${listOfIssuesCommentsResonse.statusText}!")
             return listOfIssuesCommentsResonse.body.errorMessages
@@ -109,7 +123,7 @@ listOfProjectsResponse.body.each.values.each{   Map project ->
                                                             [
                                                                 "content":[
                                                                     [
-                                                                        "text": comment.body.content.content.text.replaceAll(onpremiseBaseUrl, cloudBaseUrl)
+                                                                        "text": comment.body.content.content.text.replaceAll(onpremiseBaseUrl, cloudBaseUrl),
                                                                         "type": "text"
                                                                     ]
                                                                 ],
@@ -125,13 +139,11 @@ listOfProjectsResponse.body.each.values.each{   Map project ->
                         
                 // Check if the response status is not 200
                 if (updateCommentRequest.status != 200){
+
                     // Log error and return error messages
                     logger.error("PUT 'updateCommentRequest' failed with 'status' ${updateCommentRequest.status} 'statusText' ${updateCommentRequest.statusText}!")
                     return updateCommentRequest.body.errorMessages
                 }
-            } else {
-
-                continue
             }
         }
     }
