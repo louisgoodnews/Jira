@@ -7,7 +7,7 @@
             "name": "Create Outlook event",
             "state": "DISABLED",
             "description": "This automation rule will create an Outlook event from a given issue via REST.",
-            "authorAccountId": "606c517296e8d60068bc7066",
+            "authorAccountId": "",
             "actor": {
                 "type": "ACCOUNT_ID",
                 "value": "557058:f58131cb-b67d-43c7-b30d-6b58d40bd077"
