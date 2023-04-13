@@ -53,8 +53,8 @@ arrayOfSpacesResponse.body.results*.id.each { Integer spaceId ->
 
     // Iterate over each page in the list of pages for the current space
     arrayOfSpacePagesResponse.body.results.each { Map<String, Object> spacePage ->
-        // Check if the page body is not empty
-        if (spacePage.body != null){
+        // Check if the page body value is not empty
+        if (spacePage.body.value){
         // Check if the page body value contains the on-premise base URL
             if (spacePage.body.value.contains(onpremiseBaseUrl)){
                 // Replace the on-premise base URL with the cloud base URL in the page body and update the page
