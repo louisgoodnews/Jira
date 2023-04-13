@@ -1,0 +1,4 @@
+1. To add emojis as options for a customfield in Jira, simply write a comment in a given issue containing all Jira emojis (i.e., those available in the comment menu).
+2. Create an automation rule that will log the comment in particular.
+3. Next, open the customfield administration in a new tab. There you can head to your customfield and create a new option.
+4. For the value of the option, simply copy and paste the emoji from the automation log. Done!
