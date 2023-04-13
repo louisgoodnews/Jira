@@ -24,7 +24,7 @@ String onpremiseBaseUrl = ""
 String cloudBaseUrl = ""
 
 // Retrieve list of spaces from the cloud API
-HttpResponse<Map> arrayOfSpacesResponse = get("${cloudBaseUrl}/wiki/api/v2/spaces")
+HttpResponse<Map> arrayOfSpacesResponse = get("/wiki/api/v2/spaces")
                                         .header("Accept", "application/json")
                                         .header("Content-Type", "application/json")
                                         .asObject(Map)
@@ -39,7 +39,7 @@ if (arrayOfSpacesResponse.status != 200){
 // Iterate over each space in the list of spaces
 arrayOfSpacesResponse.body.results*.id.each { Integer spaceId ->
     // Retrieve list of pages for the current space from the cloud API
-    HttpResponse<Map> arrayOfSpacePagesResponse = get("${cloudBaseUrl}/wiki/api/v2/spaces/${spaceId}/pages")
+    HttpResponse<Map> arrayOfSpacePagesResponse = get("/wiki/api/v2/spaces/${spaceId}/pages")
                                                 .header("Accept", "application/json")
                                                 .header("Content-Type", "application/json")
                                                 .asObject(Map)
@@ -53,28 +53,31 @@ arrayOfSpacesResponse.body.results*.id.each { Integer spaceId ->
 
     // Iterate over each page in the list of pages for the current space
     arrayOfSpacePagesResponse.body.results.each { Map<String, Object> spacePage ->
-        // Check if the page body contains the on-premise base URL
-        if (spacePage.body.contains(onpremiseBaseUrl)){
-            // Replace the on-premise base URL with the cloud base URL in the page body and update the page
-            HttpResponse<Map> updateSpacePageBodyResponse = put("${cloudBaseUrl}/wiki/api/v2/pages/${spacePage.id}")
-                                                            .header("Accept", "application/json")
-                                                            .header("Content-Type", "application/json")
-                                                            .body([
-                                                                "id": spacePage.id,
-                                                                "status": spacePage.status,
-                                                                "title": spacePage.title,
-                                                                "spaceId": spacePage.spaceId,
-                                                                "body":[
-                                                                    "representation": "storage",
-                                                                    "value": spacePage.body.replaceAll(onpremiseBaseUrl, cloudBaseUrl)
-                                                                ]
-                                                            ])
-                                                            .asJson()
-            // Check if the response status is not 200
-            if (updateSpacePageBodyResponse.status != 200){
-                // Log error and return error messages
-                logger.error("Updating page with ID ${spacePage.id} failed with 'status' ${updateSpacePageBodyResponse.status} 'statusText' ${updateSpacePageBodyResponse.statusText}!")
-                return updateSpacePageBodyResponse.body.errorMessages
+        // Check if the page body is not empty
+        if (spacePage.body != null){
+        // Check if the page body value contains the on-premise base URL
+            if (spacePage.body.value.contains(onpremiseBaseUrl)){
+                // Replace the on-premise base URL with the cloud base URL in the page body and update the page
+                HttpResponse<Map> updateSpacePageBodyResponse = put("/wiki/api/v2/pages/${spacePage.id}")
+                                                                .header("Accept", "application/json")
+                                                                .header("Content-Type", "application/json")
+                                                                .body([
+                                                                    "id": spacePage.id,
+                                                                    "status": spacePage.status,
+                                                                    "title": spacePage.title,
+                                                                    "spaceId": spacePage.spaceId,
+                                                                    "body":[
+                                                                        "representation": "storage",
+                                                                        "value": spacePage.body.replaceAll(onpremiseBaseUrl, cloudBaseUrl)
+                                                                    ]
+                                                                ])
+                                                                .asJson()
+                // Check if the response status is not 200
+                if (updateSpacePageBodyResponse.status != 200){
+                    // Log error and return error messages
+                    logger.error("Updating page with ID ${spacePage.id} failed with 'status' ${updateSpacePageBodyResponse.status} 'statusText' ${updateSpacePageBodyResponse.statusText}!")
+                    return updateSpacePageBodyResponse.body.errorMessages
+                }
             }
         }
     }
