@@ -13,8 +13,6 @@
 import java.util.ArrayList
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-import groovy.json.JsonSlurper
-import groovy.json.JsonOutput
 
 import io.github.openunirest.http.HttpResponse
 
@@ -57,139 +55,104 @@ listOfProjectsResponse.body.values.each{   Map project ->
         return listOfIssuesResponse.body.errorMessages
     }
 
-    // Loop through the issues and update the comments if necessary
-    listOfIssuesResponse.body.issues.each{   Map searchResult ->
+    if(listOfIssuesResponse.body.results > 0){
 
-        HttpResponse<Map> issueResponse = get("/rest/api/3/issue/${searchResult.key}")
-                                    .header("Accept", "application/json")
-                                    .header("Content-Type", "application/json")
-                                    .asObject(Map)
-        
-        // Check if the response status is not 200
-        if (issueResponse.status != 200){
+            // Loop through the issues and update the comments if necessary
+            listOfIssuesResponse.body.issues.each{   Map searchResult ->
 
-            // Log error and return error messages
-            logger.error("GET 'issueResponse' failed with 'status' ${issueResponse.status} 'statusText' ${issueResponse.statusText}!")
-            return issueResponse.body.errorMessages
-        }
-
-        if(issueResponse.body.fields.description.toString().contains(onpremiseBaseUrl)){
-
-            // Send a PUT request to update the issue with the new comment text
-            HttpResponse<Map> listOfIssuesResonse = put("/rest/api/3/issue/${issueResponse.body.key}")
-                                                .header("Accept", "application/json")
-                                                .header("Content-Type", "application/json")
-                                                .body(
-                                                    [
-                                                        "fields":[
-                                                            "description": issueResponse.body.fields.description.toString()replaceAll(onpremiseBaseUrl, cloudBaseUrl)
-                                                        ]
-                                                    ]
-                                                )
-                                                .asJson()
-
-            // Check if the response status is not 200
-            if (listOfIssuesResonse.status != 200){
-
-                // Log error and return error messages
-                logger.error("PUT 'listOfIssuesResonse' failed with 'status' ${listOfIssuesResonse.status} 'statusText' ${listOfIssuesResonse.statusText}!")
-                return listOfIssuesResonse.body.errorMessages
-            }
-        }
-
-        // Send a GET request to retrieve the comments for the current issue
-        HttpResponse<Map> listOfIssuesCommentsResonse = get("/rest/api/3/issue/${issueResponse.key}/comment")
+                HttpResponse<Map> issueResponse = get("/rest/api/3/issue/${searchResult.key}")
                                             .header("Accept", "application/json")
                                             .header("Content-Type", "application/json")
                                             .asObject(Map)
-        
-        // Check if the response status is not 200
-        if (listOfIssuesCommentsResonse.status != 200){
-
-            // Log error and return error messages
-            logger.error("GET 'listOfIssuesCommentsResonse' failed with 'status' ${listOfIssuesCommentsResonse.status} 'statusText' ${listOfIssuesCommentsResonse.statusText}!")
-            return listOfIssuesCommentsResonse.body.errorMessages
-        }
-
-        // Loop through the issues and update the comments if necessary
-        listOfIssuesCommentsResonse.body.comments.each{ Map comment ->
-
-            if(comment.body.content.content.text.contains(onpremiseBaseUrl)){
                 
-                HttpResponse<Map> updateCommentRequest = put("/rest/api/3/issue/${issueResponse.key}/comment/${comment.id}")
-                                            .header("Accept", "application/json")
-                                            .header("Content-Type", "application/json")
-                                            .body(
-                                                [
-                                                    "body":[
-                                                        "content":[
-                                                            [
-                                                                "content":[
-                                                                    [
-                                                                        "text": comment.body.content.content.text.replaceAll(onpremiseBaseUrl, cloudBaseUrl),
-                                                                        "type": "text"
-                                                                    ]
-                                                                ],
-                                                                "type": "paragraph"
-                                                            ]
-                                                        ],
-                                                        "type": "doc",
-                                                        "version": comment.body.version
-                                                    ]
-                                                ]
-                                            )
-                                            .asObject(Map)
-                        
                 // Check if the response status is not 200
-                if (updateCommentRequest.status != 200){
+                if (issueResponse.status != 200){
 
                     // Log error and return error messages
-                    logger.error("PUT 'updateCommentRequest' failed with 'status' ${updateCommentRequest.status} 'statusText' ${updateCommentRequest.statusText}!")
-                    return updateCommentRequest.body.errorMessages
+                    logger.error("GET 'issueResponse' failed with 'status' ${issueResponse.status} 'statusText' ${issueResponse.statusText}!")
+                    return issueResponse.body.errorMessages
+                }
+
+                if(issueResponse.body.fields.description.toString().contains(onpremiseBaseUrl)){
+
+                    // Send a PUT request to update the issue with the new comment text
+                    HttpResponse<Map> listOfIssuesResonse = put("/rest/api/3/issue/${issueResponse.body.key}")
+                                                        .header("Accept", "application/json")
+                                                        .header("Content-Type", "application/json")
+                                                        .body(
+                                                            [
+                                                                "fields":[
+                                                                    "description": issueResponse.body.fields.description.toString().replaceAll(onpremiseBaseUrl, cloudBaseUrl)
+                                                                ]
+                                                            ]
+                                                        )
+                                                        .asJson()
+
+                    // Check if the response status is not 200
+                    if (listOfIssuesResonse.status != 200){
+
+                        // Log error and return error messages
+                        logger.error("PUT 'listOfIssuesResonse' failed with 'status' ${listOfIssuesResonse.status} 'statusText' ${listOfIssuesResonse.statusText}!")
+                        return listOfIssuesResonse.body.errorMessages
+                    }
+                }
+
+                // Send a GET request to retrieve the comments for the current issue
+                HttpResponse<Map> listOfIssuesCommentsResonse = get("/rest/api/3/issue/${issueResponse.key}/comment")
+                                                    .header("Accept", "application/json")
+                                                    .header("Content-Type", "application/json")
+                                                    .asObject(Map)
+                
+                // Check if the response status is not 200
+                if (listOfIssuesCommentsResonse.status != 200){
+
+                    // Log error and return error messages
+                    logger.error("GET 'listOfIssuesCommentsResonse' failed with 'status' ${listOfIssuesCommentsResonse.status} 'statusText' ${listOfIssuesCommentsResonse.statusText}!")
+                    return listOfIssuesCommentsResonse.body.errorMessages
+                }
+
+                // Loop through the issues and update the comments if necessary
+                listOfIssuesCommentsResonse.body.comments.each{ Map comment ->
+
+                    if(comment.body.content.content.text.contains(onpremiseBaseUrl)){
+                        
+                        HttpResponse<Map> updateCommentRequest = put("/rest/api/3/issue/${issueResponse.key}/comment/${comment.id}")
+                                                    .header("Accept", "application/json")
+                                                    .header("Content-Type", "application/json")
+                                                    .body(
+                                                        [
+                                                            "body":[
+                                                                "content":[
+                                                                    [
+                                                                        "content":[
+                                                                            [
+                                                                                "text": comment.body.content.content.text.replaceAll(onpremiseBaseUrl, cloudBaseUrl),
+                                                                                "type": "text"
+                                                                            ]
+                                                                        ],
+                                                                        "type": "paragraph"
+                                                                    ]
+                                                                ],
+                                                                "type": "doc",
+                                                                "version": comment.body.version
+                                                            ]
+                                                        ]
+                                                    )
+                                                    .asObject(Map)
+                                
+                        // Check if the response status is not 200
+                        if (updateCommentRequest.status != 200){
+
+                            // Log error and return error messages
+                            logger.error("PUT 'updateCommentRequest' failed with 'status' ${updateCommentRequest.status} 'statusText' ${updateCommentRequest.statusText}!")
+                            return updateCommentRequest.body.errorMessages
+                        }
+                    }
                 }
             }
-        }
+    } else{
+
+        logger.info("No issues found for query: 'project = " + project.key + " AND text ~ '" + onpremiseBaseUrl + "''. Skipping.")
+        continue
     }
 }
-
-// Get value from key from a json string
-def getKeyValueFromJson(String key, String jsonString) {
-    def slurper = new JsonSlurper()
-    def json = slurper.parseText(jsonString)
-
-    def value = null
-
-    json.each { obj ->
-        obj.content.each { contentObj ->
-            if (contentObj[key]) {
-                value = contentObj[key]
-            }
-        }
-    }
-
-    return value
-}
-
-// Retrieve all values for a key in a json
-def filterJsonForHotword(jsonString, hotword) {
-    def json = new JsonSlurper().parseText(jsonString)
-    def values = []
-    def traverse = { node ->
-        if (node instanceof Map) {
-            node.each { key, value ->
-                if (key == hotword) {
-                    values << value
-                } else {
-                    traverse(value)
-                }
-            }
-        } else if (node instanceof List) {
-            node.each {
-                traverse(it)
-            }
-        }
-    }
-    traverse(json)
-    return values
-}
-
