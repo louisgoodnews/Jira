@@ -7,6 +7,8 @@ import io.github.openunirest.http.HttpResponse
 Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.migration.postmigration.addScriptrunnerUserToProjects")
 logger.setLevel(Level.INFO)
 
+String relevantProjectRole = ""
+
 // Send a GET request to retrieve information about the current user
 HttpResponse<Map> currentUserRequest = get("/rest/api/latest/myself")
                                         .header("Accept", "application/json")
@@ -38,7 +40,7 @@ if (getProjectsResponse.status != 200){
 try{
 
     // Loop through each project in the response
-    for(Map project : getAllProjectsResponse){
+    for(Map project : getProjectsResponse.body.values){
 
         // Send a GET request to retrieve the roles for the current project
         HttpResponse<Map> getProjectRolesFromProjectResponse = get("/rest/api/latest/${project.key}/role")
@@ -55,7 +57,7 @@ try{
         }
 
         // Send a POST request to update the "administrators" role for the current project
-        HttpResponse<Map> updateProjectRoleActorRequest = post(getProjectRolesFromProjectResponse.get("administrators").replace("^https:\/\/[a-z]+\.atlassian\.net(?=\/|$)", ""))
+        HttpResponse<Map> updateProjectRoleActorRequest = post(getProjectRolesFromProjectResponse,body.get(relevantProjectRole).replace("^https:\/\/[a-z]+\.atlassian\.net(?=\/|$)", ""))
                                                             .header("Accept", "application/json")
                                                             .header("Content-Type", "application/json")
                                                             .body([
