@@ -13,6 +13,9 @@
 import java.util.ArrayList
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
 import io.github.openunirest.http.HttpResponse
 
 // Initialize logger for logging messages
@@ -57,7 +60,7 @@ listOfProjectsResponse.body.values.each{   Map project ->
     // Loop through the issues and update the comments if necessary
     listOfIssuesResponse.body.issues.each{   Map searchResult ->
 
-        HttpResponse<Map> issueResponse = get("/rest/api/3/issue/${issue.key}")
+        HttpResponse<Map> issueResponse = get("/rest/api/3/issue/${searchResult.key}")
                                     .header("Accept", "application/json")
                                     .header("Content-Type", "application/json")
                                     .asObject(Map)
@@ -70,7 +73,7 @@ listOfProjectsResponse.body.values.each{   Map project ->
             return issueResponse.body.errorMessages
         }
 
-        if(issueResponse.body.fields.description.contains(onpremiseBaseUrl)){
+        if(issueResponse.body.fields.description.toString().contains(onpremiseBaseUrl)){
 
             // Send a PUT request to update the issue with the new comment text
             HttpResponse<Map> listOfIssuesResonse = put("/rest/api/3/issue/${issueResponse.body.key}")
@@ -79,7 +82,7 @@ listOfProjectsResponse.body.values.each{   Map project ->
                                                 .body(
                                                     [
                                                         "fields":[
-                                                            "description": issueResponse.body.fields.replaceAll(onpremiseBaseUrl, cloudBaseUrl)
+                                                            "description": issueResponse.body.fields.description.toString()replaceAll(onpremiseBaseUrl, cloudBaseUrl)
                                                         ]
                                                     ]
                                                 )
@@ -147,5 +150,46 @@ listOfProjectsResponse.body.values.each{   Map project ->
             }
         }
     }
+}
+
+// Get value from key from a json string
+def getKeyValueFromJson(String key, String jsonString) {
+    def slurper = new JsonSlurper()
+    def json = slurper.parseText(jsonString)
+
+    def value = null
+
+    json.each { obj ->
+        obj.content.each { contentObj ->
+            if (contentObj[key]) {
+                value = contentObj[key]
+            }
+        }
+    }
+
+    return value
+}
+
+// Retrieve all values for a key in a json
+def filterJsonForHotword(jsonString, hotword) {
+    def json = new JsonSlurper().parseText(jsonString)
+    def values = []
+    def traverse = { node ->
+        if (node instanceof Map) {
+            node.each { key, value ->
+                if (key == hotword) {
+                    values << value
+                } else {
+                    traverse(value)
+                }
+            }
+        } else if (node instanceof List) {
+            node.each {
+                traverse(it)
+            }
+        }
+    }
+    traverse(json)
+    return values
 }
 
