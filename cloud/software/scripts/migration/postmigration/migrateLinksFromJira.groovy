@@ -153,6 +153,5 @@ listOfProjectsResponse.body.values.each{   Map project ->
     } else{
 
         logger.info("No issues found for query: 'project = " + project.key + " AND text ~ '" + onpremiseBaseUrl + "''. Skipping.")
-        continue
     }
 }
