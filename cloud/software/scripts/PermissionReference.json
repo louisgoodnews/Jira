@@ -1,0 +1,344 @@
+{
+    "permissions": [
+        {
+            "permission": "ADMINISTER_PROJECTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "BROWSE_PROJECTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "MANAGE_SPRINTS_PERMISSION",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "SERVICEDESK_AGENT",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "VIEW_DEV_TOOLS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "VIEW_READONLY_WORKFLOW",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "ASSIGN_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "CLOSE_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "CREATE_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "DELETE_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "EDIT_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "LINK_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "MODIFY_REPORTER",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "MOVE_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "RESOLVE_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "SCHEDULE_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "SET_ISSUE_SECURITY",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "TRANSITION_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "MANAGE_WATCHERS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "VIEW_VOTERS_AND_WATCHERS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "ADD_COMMENTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "DELETE_ALL_COMMENTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "DELETE_OWN_COMMENTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "EDIT_ALL_COMMENTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "EDIT_OWN_COMMENTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "CREATE_ATTACHMENT",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "DELETE_ALL_ATTACHMENTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "DELETE_OWN_ATTACHMENTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "ADMINISTER_PROJECTS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "DELETE_ALL_WORKLOGS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "DELETE_OWN_WORKLOGS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "EDIT_ALL_WORKLOGS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "EDIT_OWN_WORKLOGS",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "permission": "WORK_ON_ISSUES",
+            "actors": [
+                {
+                    "parameter": "",
+                    "type": "projectRole",
+                    "value": ""
+                }
+            ]
+        }
+    ]
+}

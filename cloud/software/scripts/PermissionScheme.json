@@ -1,0 +1,14 @@
+{
+    "name": "",
+    "description": "",
+    "permissions": [
+        {
+            "holder": {
+                "parameter": "",
+                "type": "projectRole",
+                "value": ""
+            },
+            "permission": ""
+        }
+    ]
+}
