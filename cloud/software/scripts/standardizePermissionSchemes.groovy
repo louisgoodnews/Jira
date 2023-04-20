@@ -4,9 +4,11 @@ import org.apache.log4j.Level
 Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.standardizePermissionSchemes")
 logger.setLevel(Level.DEBUG)
 
+String authorization = "" //-> {YOUR EMAIL ADDRESS: YOU PASSWORD} encoded to base64
+
 HttpResponse projectRoleResponse = get("/rest/api/latest/role")
                                     .header("Accept", "application/json")
-                                    .header("Content-Type", "application/json")
+                                    .header("Authorization", "Basic ${authorization}")
                                     .asJson()
 
 // Check if the response status is not 200
@@ -175,7 +177,7 @@ LinkedHashMap<String, Object> permissionSchemeReference = [
 LinkedHashMap<String, Object> createPermissionSchemeRequestBody = [
     "name": "",
     "description": "",
-    "permissions": new LinkedList<Object>
+    "permissions": new LinkedList<Object>()
 ]
 
 for (permissionKey in permissionSchemeReference.keySet()) {
@@ -188,7 +190,7 @@ for (permissionKey in permissionSchemeReference.keySet()) {
 
         createPermissionSchemeRequestBody.get("permissions").append([
             "holder": [
-                "parameter": projectRoleObject.name
+                "parameter": projectRoleObject.name,
                 "type": "projectRole",
                 "value": projectRoleObject.id
             ],
@@ -200,6 +202,7 @@ for (permissionKey in permissionSchemeReference.keySet()) {
 HttpResponse createPermissionSchemeResponse = post("/rest/api/latest/permissionscheme")
                                                 .header("Accept", "application/json")
                                                 .header("Content-Type", "application/json")
+                                                .header("Authorization", "Basic ${authorization}")
                                                 .body(createPermissionSchemeRequestBody)
                                                 .asJson()
 
