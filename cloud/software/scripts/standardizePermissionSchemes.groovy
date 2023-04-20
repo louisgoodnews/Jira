@@ -4,11 +4,11 @@ import org.apache.log4j.Level
 Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.standardizePermissionSchemes")
 logger.setLevel(Level.DEBUG)
 
-String authorization = "" //-> {YOUR EMAIL ADDRESS: YOU PASSWORD} encoded to base64
+String authentication = "" //-> {YOUR EMAIL ADDRESS: YOU PASSWORD} encoded to base64
 
 HttpResponse projectRoleResponse = get("/rest/api/latest/role")
                                     .header("Accept", "application/json")
-                                    .header("Authorization", "Basic ${authorization}")
+                                    .header("Authentication", "Basic ${authentication}")
                                     .asJson()
 
 // Check if the response status is not 200
@@ -19,7 +19,7 @@ if (projectRoleResponse.status != 200){
     return projectRoleResponse.body.errorMessages
 }
 
-LinkedHashMap<String, Object> permissionSchemeReference = [
+LinkedHashMap<String, List<String>> permissionSchemeReference = [
     "ADMINISTER_PROJECTS": [
         "Project Administrators",
         "Project Managers"
@@ -182,7 +182,7 @@ LinkedHashMap<String, Object> createPermissionSchemeRequestBody = [
 
 for (permissionKey in permissionSchemeReference.keySet()) {
 
-    List<Object> projectRoleObjectList = projectRoleResponse.body.findAll{ Object projectRole ->
+    Collection<Object> projectRoleObjectList = projectRoleResponse.body.findAll{ Object projectRole ->
 
         permissionSchemeReference.get(permissionKey).contains(projectRole.name)
     }
@@ -202,7 +202,7 @@ for (permissionKey in permissionSchemeReference.keySet()) {
 HttpResponse createPermissionSchemeResponse = post("/rest/api/latest/permissionscheme")
                                                 .header("Accept", "application/json")
                                                 .header("Content-Type", "application/json")
-                                                .header("Authorization", "Basic ${authorization}")
+                                                .header("Authentication", "Basic ${authentication}")
                                                 .body(createPermissionSchemeRequestBody)
                                                 .asJson()
 
