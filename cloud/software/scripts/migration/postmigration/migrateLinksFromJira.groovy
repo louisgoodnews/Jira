@@ -24,6 +24,9 @@ logger.setLevel(Level.INFO)
 String onpremiseBaseUrl = ""
 String cloudBaseUrl = ""
 
+// 
+LinkedList<String> failedProjects = new LinkedList<String>()
+
 // Send a GET request to retrieve a list of projects from the Jira API
 HttpResponse<Map> listOfProjectsResponse = get("rest/api/3/project/search")
                                         .header("Accept", "application/json")
@@ -44,11 +47,14 @@ listOfProjectsResponse.body.values.each{   Map project ->
     HttpResponse<Map> listOfIssuesResponse = get("/rest/api/3/search")
                                             .header("Accept", "application/json")
                                             .header("Content-Type", "application/json")
-                                            .queryString("jql", "project = " + project.key + " AND text ~ '" + onpremiseBaseUrl + "'")
+                                            .queryString("jql", "project = '" + project.name + "' AND text ~ '" + onpremiseBaseUrl + "'")
                                             .asObject(Map)
 
     // Check if the response status is not 200
-    if (listOfIssuesResponse.status != 200){
+    if (listOfIssuesResponse.status == 400){
+
+        failedProjects.add(project.key)
+    }else if (listOfIssuesResponse.status != 200){
 
         // Log error and return error messages
         logger.error("GET 'listOfIssuesResponse' failed with 'status' ${listOfIssuesResponse.status} 'statusText' ${listOfIssuesResponse.statusText}!")
@@ -154,4 +160,9 @@ listOfProjectsResponse.body.values.each{   Map project ->
 
         logger.info("No issues found for query: 'project = " + project.key + " AND text ~ '" + onpremiseBaseUrl + "''. Skipping.")
     }
+}
+
+if(failedProjects){
+
+    return "There seems to be an issue with the permissions in these projects: ${failedProjects}."
 }

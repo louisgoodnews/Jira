@@ -3,25 +3,28 @@ import org.apache.log4j.Logger
 import org.apache.log4j.Level
 import io.github.openunirest.http.HttpResponse
 
+#TODO update code
+
 // Initialize logger for logging messages
-Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.migration.postmigration.addScriptrunnerUserToProjects")
+Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.migration.postmigration.addGroupToAllProjects")
 logger.setLevel(Level.INFO)
 
 String relevantProjectRole = ""
+String relevantGroupName = ""
 String jiraBaseUrl = ""
 
 // Send a GET request to retrieve information about the current user
-HttpResponse<Map> currentUserRequest = get("/rest/api/latest/myself")
+HttpResponse<Map> allGroupsResponse = get("/rest/api/latest/groups/picker")
                                         .header("Accept", "application/json")
                                         .header("Content-Type", "application/json")
                                         .asObject(Map)
 
 // Check if the response status is not 200
-if (currentUserRequest.status != 200){
+if (allGroupsResponse.status != 200){
 
     // Log error and return error messages
-    logger.error("GET 'currentUserRequest' failed with 'status' ${currentUserRequest.status} 'statusText' ${currentUserRequest.statusText}!")
-    return currentUserRequest.body.errorMessages
+    logger.error("GET 'allGroupsResponse' failed with 'status' ${allGroupsResponse.status} 'statusText' ${allGroupsResponse.statusText}!")
+    return allGroupsResponse.body.errorMessages
 }
 
 // Send a GET request to retrieve a list of projects from the Jira API
@@ -63,8 +66,11 @@ try{
                                                             .header("Content-Type", "application/json")
                                                             .body([
                                                                 "categorisedActors": [
-                                                                    "atlassian-user-role-actor":[
-                                                                        currentUserRequest.body.accountId
+                                                                    "atlassian-group-role-actor-id":[
+                                                                        allGroupsResponse.body.groups.find{ Map group ->
+
+                                                                            group.name.equalsIgnoreCase(relevantGroupName).groupId
+                                                                        }
                                                                     ]
                                                                 ]
                                                             ])
