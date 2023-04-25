@@ -8,6 +8,7 @@ Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.migr
 logger.setLevel(Level.INFO)
 
 String relevantProjectRole = ""
+String jiraBaseUrl = ""
 
 // Send a GET request to retrieve information about the current user
 HttpResponse<Map> currentUserRequest = get("/rest/api/latest/myself")
@@ -57,7 +58,7 @@ try{
         }
 
         // Send a POST request to update the "administrators" role for the current project
-        HttpResponse<Map> updateProjectRoleActorRequest = post(getProjectRolesFromProjectResponse.body.get(relevantProjectRole).replace("^https://[a-z]+.atlassian.net", ""))
+        HttpResponse<Map> updateProjectRoleActorRequest = put(getProjectRolesFromProjectResponse.body.get(relevantProjectRole).replace(jiraBaseUrl, ""))
                                                             .header("Accept", "application/json")
                                                             .header("Content-Type", "application/json")
                                                             .body([
