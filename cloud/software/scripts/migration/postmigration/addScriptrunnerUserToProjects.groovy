@@ -43,7 +43,7 @@ try{
     for(Map project : getProjectsResponse.body.values){
 
         // Send a GET request to retrieve the roles for the current project
-        HttpResponse<Map> getProjectRolesFromProjectResponse = get("/rest/api/latest/${project.key}/role")
+        HttpResponse<Map> getProjectRolesFromProjectResponse = get("/rest/api/latest/project/${project.key}/role")
                                                                 .header("Accept", "application/json")
                                                                 .header("Content-Type", "application/json")
                                                                 .asObject(Map)
@@ -57,11 +57,15 @@ try{
         }
 
         // Send a POST request to update the "administrators" role for the current project
-        HttpResponse<Map> updateProjectRoleActorRequest = post(getProjectRolesFromProjectResponse,body.get(relevantProjectRole).replace("^https:\/\/[a-z]+\.atlassian\.net(?=\/|$)", ""))
+        HttpResponse<Map> updateProjectRoleActorRequest = post(getProjectRolesFromProjectResponse.body.get(relevantProjectRole).replace("^https:\/\/[a-z]+.atlassian.net", ""))
                                                             .header("Accept", "application/json")
                                                             .header("Content-Type", "application/json")
                                                             .body([
-                                                                "user": currentUserRequest.body.accountId
+                                                                "categorisedActors": [
+                                                                    "atlassian-user-role-actor":[
+                                                                        currentUserRequest.body.accountId
+                                                                    ]
+                                                                ]
                                                             ])
                                                             .asObject(Map)
     }
