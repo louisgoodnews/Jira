@@ -57,7 +57,7 @@ try{
         }
 
         // Send a POST request to update the "administrators" role for the current project
-        HttpResponse<Map> updateProjectRoleActorRequest = post(getProjectRolesFromProjectResponse.body.get(relevantProjectRole).replace("^https:\/\/[a-z]+.atlassian.net", ""))
+        HttpResponse<Map> updateProjectRoleActorRequest = post(getProjectRolesFromProjectResponse.body.get(relevantProjectRole).replace("^https://[a-z]+.atlassian.net", ""))
                                                             .header("Accept", "application/json")
                                                             .header("Content-Type", "application/json")
                                                             .body([
