@@ -24,25 +24,30 @@ if (allCustomFields.status != 200){
 }
 
 logger.info("Found ${allCustomFields.body.values.size()} customfields.")
+try{
 
-for(Map customField : allCustomFields.body.values){
+    for(Map customField : allCustomFields.body.values){
 
-    String customFieldName = customField.name
+        String customFieldName = customField.name
 
-    if(customFieldName.contains("(migrated)") || customFieldName.contains("(migrated ")){
+        if(customFieldName.contains("(migrated)") || customFieldName.contains("(migrated ")){
 
-        HttpResponse<Map> deleteCustomField = delete("rest/api/latest/field/${customField.id}")
-                                                .header("Accept", "application/json")
-                                                .header("Content-Type", "application/json")
-                                                .header("Authorization", "Basic ${authenticationString}")
-                                                .asObject(Map)
+            HttpResponse<Map> deleteCustomField = delete("rest/api/latest/field/${customField.id}")
+                                                    .header("Accept", "application/json")
+                                                    .header("Content-Type", "application/json")
+                                                    .header("Authorization", "Basic ${authenticationString}")
+                                                    .asObject(Map)
 
-        // Check if the response status is not 200
-        if (deleteCustomField.status != 200){
+            // Check if the response status is not 200
+            if (deleteCustomField.status != 200){
 
-            // Log error and return error messages
-            logger.error("DELETE 'deleteCustomField' failed with 'status' ${deleteCustomField.status} 'statusText' ${deleteCustomField.statusText}!")
-            return deleteCustomField.body.errorMessages
+                // Log error and return error messages
+                logger.error("DELETE 'deleteCustomField' failed with 'status' ${deleteCustomField.status} 'statusText' ${deleteCustomField.statusText}!")
+                return deleteCustomField.body.errorMessages
+            }
         }
     }
+}catch (Exception e){
+    
+    logger.error("Caught exception: ${e.getMessage()} with cause:  ${e.getCause()}")
 }
