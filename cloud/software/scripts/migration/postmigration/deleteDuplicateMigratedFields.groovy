@@ -1,3 +1,6 @@
+
+//TODO: further adjust code to delete all unwanted configuration elements (preferably those not used in projects or workflows)
+
 // Import required packages
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
@@ -24,6 +27,23 @@ if (allCustomFields.status != 200){
 }
 
 logger.info("Found ${allCustomFields.body.values.size()} customfields.")
+
+HttpResponse<Map> allPermissionschemes = get("/rest/api/latest/permissionscheme")
+                                        .header("Accept", "application/json")
+                                        .header("Content-Type", "application/json")
+                                        .header("Authorization", "Basic ${authenticationString}")
+                                        .asObject(Map)
+
+// Check if the response status is not 200
+if (allPermissionschemes.status != 200){
+
+    // Log error and return error messages
+    logger.error("GET 'allPermissionschemes' failed with 'status' ${allPermissionschemes.status} 'statusText' ${allPermissionschemes.statusText}!")
+    return allPermissionschemes.body.errorMessages
+}
+
+logger.info("Found ${allCustomFields.body.values.size()} permission schemes.")
+
 try{
 
     for(Map customField : allCustomFields.body.values){

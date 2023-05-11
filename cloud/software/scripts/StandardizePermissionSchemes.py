@@ -1,25 +1,33 @@
-import org.apache.log4j.Logger
-import org.apache.log4j.Level
+import requests
+import base64
+import json
+import logging
 
-Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.scripts.standardizePermissionSchemes")
-logger.setLevel(Level.DEBUG)
+# Set up logging
+logger = logging.getLogger(
+    "louisgoodnews.jira.cloud.software.scripts.standardizePermissionSchemes")
+logger.setLevel(logging.DEBUG)
 
-String authString = "" //-> {YOUR EMAIL ADDRESS: YOU PASSWORD} encoded to base64
+jira_domain = "<YOUR JIRA DOMAIN>"  # YOUR JIRA DOMAIN
 
-HttpResponse<Map> projectRoleResponse = get("/rest/api/latest/role")
-                                    .header("Accept", "application/json")
-                                    .header("Authorization", "Basic ${authString}")
-                                    .asObject(Map)
+# Encode email and password to base64
+auth = base64.b64encode("<YOUR EMAIL ADDRESS : YOUR API TOKEN>".encode(
+    "utf-8")).decode("utf-8")  # YOUR EMAIL ADDRESS : YOUR API TOKEN
 
-// Check if the response status is not 200
-if (projectRoleResponse.status != 200){
+# Send GET request to retrieve project roles
+project_role_response = requests.get(f"https://{jira_domain}.atlassian.net/rest/api/latest/role",
+                                     headers={"Accept": "application/json",
+                                              "Authorization": f"Basic {auth}"}).json()
 
-    // Log error and return error messages
-    logger.error("GET 'projectRoleResponse' failed with 'status' ${projectRoleResponse.status} 'statusText' ${projectRoleResponse.statusText}!")
-    return projectRoleResponse.body.errorMessages
-}
+# Check if the response status is not 200
+if project_role_response["status-code"] != 200:
+    # Log error and return error messages
+    logger.error(
+        f"GET 'project_role_response' failed with 'status-code' {project_role_response['status-code']} 'message' {project_role_response['message']}!")
+    raise Exception(project_role_response["message"])
 
-LinkedHashMap<String, List<String>> permissionSchemeReference = [
+# Define the permission scheme reference
+permission_scheme_reference = {
     "ADMINISTER_PROJECTS": [
         "Project Administrators",
         "Project Managers"
@@ -172,44 +180,39 @@ LinkedHashMap<String, List<String>> permissionSchemeReference = [
         "Project Members (internal)",
         "Project Members (external)"
     ]
-]
+}
 
-LinkedHashMap<String, Object> createPermissionSchemeRequestBody = [
+create_permissionscheme_request_body = {
     "name": "",
     "description": "",
-    "permissions": new LinkedList<Object>()
-]
+    "permissions": [
 
-for (permissionKey in permissionSchemeReference.keySet()) {
+    ]
+}
 
-    Collection<Object> projectRoleObjectList = projectRoleResponse.body.findAll{ Object projectRole ->
-
-        permissionSchemeReference.get(permissionKey).contains(projectRole.name)
-    }
-    for(projectRoleObject in projectRoleObjectList){
-
-        createPermissionSchemeRequestBody.get("permissions").append([
-            "holder": [
-                "parameter": projectRoleObject.name,
+for permission_key in permission_scheme_reference.keys():
+    filtered_roles = [project_role for project_role in project_role_response["body"]["values"]
+                      if permission_scheme_reference[permission_key].contains(project_role["name"])]
+    for filtered_role in filtered_roles:
+        create_permissionscheme_request_body["permissions"].append({
+            "holder": {
+                "parameter": filtered_role["name"],
                 "type": "projectRole",
-                "value": projectRoleObject.id
-            ],
-            "permission": permissionKey
-        ])
-    }
-}
+                "value": filtered_role["id"]
+            },
+            "permission": permission_key
+        })
 
-HttpResponse<Map> createPermissionSchemeResponse = post("/rest/api/latest/permissionscheme")
-                                                .header("Accept", "application/json")
-                                                .header("Content-Type", "application/json")
-                                                .header("Authorization", "Basic ${authString}")
-                                                .body(createPermissionSchemeRequestBody)
-                                                .asObject(Map)
+# Send POST request to create the permission scheme
+permission_scheme_response = requests.get(f"https://{jira_domain}.atlassian.net/rest/api/latest/role",
+                                          headers={"Accept": "application/json",
+                                                   "Content-Type": "application/json",
+                                                   "Authorization": f"Basic {auth}"},
+                                          payload=permission_scheme_reference).json()
 
-// Check if the response status is not 200
-if (createPermissionSchemeResponse.status != 200){
-
-    // Log error and return error messages
-    logger.error("GET 'createPermissionSchemeResponse' failed with 'status' ${createPermissionSchemeResponse.status} 'statusText' ${createPermissionSchemeResponse.statusText}!")
-    return createPermissionSchemeResponse.body.errorMessages
-}
+# Check if the response status is not 200
+if permission_scheme_response["status-code"] != 200:
+    # Log error and return error messages
+    logger.error(
+        f"POST 'permission_scheme_response' failed with 'status-code' {permission_scheme_response['status-code']} 'message' {permission_scheme_response['message']}!")
+    raise Exception(permission_scheme_response["message"])
