@@ -1,0 +1,108 @@
+import java.time.format.DateTimeFormatter
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import java.time.LocalDate
+import java.util.Random
+import java.net.URL
+
+// Initialize logger
+Logger logger = Logger.getLogger("louisgoodnews.jira.cloud.software.jobs.createDailyTaskIssues")
+logger.setLevel(Level.INFO)
+
+// Create random number generator
+Random random = new Random()
+
+// Get current date
+LocalDate today = LocalDate.now()
+
+// Define pattern for page ID extraction
+Pattern pattern = Pattern.compile("/pages/(\\d+)/")
+
+// Define date formatters
+DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEEE")
+DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+// Format current day and date
+String currentDay = today.format(dayFormatter)
+String currentDate = today.format(dateFormatter)
+
+try {
+    // Retrieve epic type issues
+    HttpResponse<Map> epicTypeIssues = get("rest/api/latest/search")
+        .header("Accept" ,"application/json")
+        .queryString("jql", "project = 10001 AND issuetype = 10000 AND resolution = Unresolved")
+        .asObject(Map)
+
+    // Iterate through epic type issues
+    for (epicTypeIssue in epicTypeIssues.body.results.issues) {
+        // Extract custom field entry
+        String customfieldEntry = new URL(epicTypeIssue.customfield_10042).getPath()
+
+        // Match and extract source page ID
+        Matcher matcher = pattern.matcher(customfieldEntry)
+        String sourcePageId = ""
+        if (matcher.find()) {
+            sourcePageId = matcher.group(1)
+        }
+
+        // Retrieve child pages
+        HttpResponse<Map> childPages = get("/wiki/rest/api/content/${sourcePageId}/child/page")
+            .header("Accept" ,"application/json")
+            .asObject(Map)
+
+        // Retrieve event type issues
+        HttpResponse<Map> eventTypeIssues = get("rest/api/latest/search")
+            .header("Accept" ,"application/json")
+            .queryString("jql", "project = 10001 AND issuetype = 10005 AND cf[10042] = ${currentDay} AND priority = {issue.priority.name}")
+            .asObject(Map)
+
+        // Retrieve summary pages
+        List<Map> summaryPages = childPages.body.results.findAll{ it -> it.title.contains("Zusammenfassung") }
+
+        // Iterate through event type issues
+        for (eventTypeIssue in eventTypeIssues.results.issues) {
+            // Select a random summary page
+            Map summaryPage = summaryPages.body.results[random.nextInt(eventTypeIssues.body.results.total)]
+
+            // Create task issue
+            HttpResponse<Map> taskIssue = post("/rest/api/latest/issue")
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(fields: [
+                    "assignee": [
+                        "accountId": epicTypeIssue.fields.assignee.accountId
+                    ],
+                    "components": [
+						epicTypeIssue.fields.components[0]
+					],
+					"description": "To do's:\n\n	* Zusammenfassung lesen -> https://study-group-psychology.atlassian.net/${summaryPage._links.webui}\n	* Inhalt der Zusammenfassung am besten in eigenen Worten schritlich wiedergeben\n	* Sofern verfügbar Onlinetest durchführen und Testergebnis notieren\n	* Falsch beantwortete Fragen als “Flop 10” in einem Fehler Vorgang festhalten und klären.\n\nZeiten sind in diesem Vorgang zu loggen.",
+                    "duedate": currentDate.toString(),
+                    "issuetype": [
+                        "id": "10002"
+                    ],
+                    "project": [
+                        "id": "10001"
+                    ],
+                    "prority": [
+                        "id": epicTypeIssue.fields.prority.id
+                    ],
+                    "reporter": [
+                        "accountId": epicTypeIssue.fields.reporter.accountId
+                    ],
+                    "summary": summaryPage.title.substring(summaryPage.title.indexOf("Modul")),
+                    "customfield_10014": [
+                        "key": epicTypeIssue.key
+                    ],
+                    "customfield_10036": eventTypeIssue.fields.customfield_10036,
+                    "customfield_10041": eventTypeIssue.fields.customfield_10041,
+                    "customfield_10042": "https://study-group-psychology.atlassian.net/${summaryPage._links.webui}"
+                ])
+                .asObject(Map)
+        }
+    }
+} catch (Exception e) {
+    // Log error message in case of any exception
+    logger.error("An error occurred: ${e.message}", e)
+}
