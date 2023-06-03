@@ -34,11 +34,16 @@ try {
         .header("Accept" ,"application/json")
         .queryString("jql", "project = 10001 AND issuetype = 10000 AND resolution = Unresolved")
         .asObject(Map)
+    
+    if (epicTypeIssues.status != 200){
+        logger.error("${epicTypeIssues.status} - ${epicTypeIssues.body}")
+        return
+    }
 
     // Iterate through epic type issues
-    for (epicTypeIssue in epicTypeIssues.body.results.issues) {
+    for (epicTypeIssue in epicTypeIssues.body.issues) {
         // Extract custom field entry
-        String customfieldEntry = new URL(epicTypeIssue.customfield_10042).getPath()
+        String customfieldEntry = new URL(epicTypeIssue.fields.customfield_10042).getPath()
 
         // Match and extract source page ID
         Matcher matcher = pattern.matcher(customfieldEntry)
@@ -52,19 +57,29 @@ try {
             .header("Accept" ,"application/json")
             .asObject(Map)
 
+        if (childPages.status != 200){
+            logger.error("${childPages.status} - ${childPages.body}")
+            return
+        }
+
         // Retrieve event type issues
         HttpResponse<Map> eventTypeIssues = get("rest/api/latest/search")
             .header("Accept" ,"application/json")
-            .queryString("jql", "project = 10001 AND issuetype = 10005 AND cf[10042] = ${currentDay} AND priority = {issue.priority.name}")
+            .queryString("jql", "project = 10001 AND issuetype = 10005 AND cf[10042] = ${currentDay} AND priority = ${epicTypeIssue.fields.priority.name}")
             .asObject(Map)
+
+        if (eventTypeIssues.status != 200){
+            logger.error("${eventTypeIssues.status} - ${eventTypeIssues.body}")
+            return
+        }
 
         // Retrieve summary pages
         List<Map> summaryPages = childPages.body.results.findAll{ it -> it.title.contains("Zusammenfassung") }
 
         // Iterate through event type issues
-        for (eventTypeIssue in eventTypeIssues.results.issues) {
+        for (eventTypeIssue in eventTypeIssues.body.issues) {
             // Select a random summary page
-            Map summaryPage = summaryPages.body.results[random.nextInt(eventTypeIssues.body.results.total)]
+            Map summaryPage = summaryPages.body.results[random.nextInt(eventTypeIssues.body.size)]
 
             // Create task issue
             HttpResponse<Map> taskIssue = post("/rest/api/latest/issue")
@@ -85,8 +100,8 @@ try {
                     "project": [
                         "id": "10001"
                     ],
-                    "prority": [
-                        "id": epicTypeIssue.fields.prority.id
+                    "priority": [
+                        "id": epicTypeIssue.fields.priority.id
                     ],
                     "reporter": [
                         "accountId": epicTypeIssue.fields.reporter.accountId
@@ -100,9 +115,15 @@ try {
                     "customfield_10042": "https://study-group-psychology.atlassian.net/${summaryPage._links.webui}"
                 ])
                 .asObject(Map)
+                
+            if (taskIssue.status != 200){
+                logger.error("${taskIssue.status} - ${taskIssue.body}")
+                return
+            }
         }
     }
 } catch (Exception e) {
     // Log error message in case of any exception
     logger.error("An error occurred: ${e.message}", e)
+    return
 }
