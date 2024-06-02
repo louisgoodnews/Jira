@@ -1,5 +1,6 @@
 Scriptunser, das du läufst in unseren Jira Instanzen,
-dein Plugin komme, die Scriptrunner Erweiterung komme.
+
+dein Plugin komme, die Scriptrunner Erweiterung werde installiert.
 
 Dein Script laufe, wie in der Konsole, so auch in der Folgefunktion.
 
